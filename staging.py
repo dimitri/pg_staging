@@ -5,6 +5,7 @@
 import os
 
 from options import VERBOSE, DRY_RUN
+from options import NotYetImplementedException, CouldNotGetDumpException
 import pgbouncer, restore
 
 class Staging:
@@ -17,6 +18,8 @@ class Staging:
                  backup_base_url,
                  backup_date,
                  host,
+                 dbuser,
+                 dbowner,
                  postgres_port,
                  pgbouncer_port,
                  pgbouncer_conf,
@@ -31,6 +34,8 @@ class Staging:
         self.backup_base_url = backup_base_url
         self.backup_date     = backup_date
         self.host            = host
+        self.dbuser          = dbuser
+        self.dbowner         = dbowner
         self.postgres_port   = postgres_port
         self.pgbouncer_port  = pgbouncer_port
         self.pgbouncer_conf  = pgbouncer_conf
@@ -42,8 +47,12 @@ class Staging:
         self.backup_filename = "%s%s.%s.dump" \
                                % (backup_base_url, dbname, backup_date)
 
+        self.dated_dbname    = "%s_%s" % (self.dbname,
+                                          self.backup_date.replace('-', ''))
+
         if VERBOSE:
             print "backup filename is '%s'" % self.backup_filename
+            print "target database is '%s'" % self.dated_dbname
 
     def get_dump(self):
         """ get the dump file from the given URL """
@@ -63,21 +72,32 @@ class Staging:
 
         os.write(dump_fd, r.read())
 
-        # FIXME: get the file content
         return dump_fd, filename
 
     def restore(self):
         """ launch a pg_restore for the current staging configuration """
 
-        # first, download the dump we need.
+        # first attempt to establish the connection to remote server
+        # no need to fetch the big backup file unless this succeed
+        r = restore.pgrestore(self.dated_dbname,
+                              self.dbuser,
+                              self.host,
+                              self.postgres_port,
+                              self.dbowner)
+
+        # while connected, try to create the database
+        r.createdb()
+
+        # now, download the dump we need.
         dump_fd, filename = self.get_dump()
 
         if VERBOSE:
-            print "Got the dump in '%s'" % filename
             os.system("ls -l %s" % filename)
 
+        r.pg_restore(filename)
+
         if VERBOSE:
-            print "Removing the dump file '%s'" % filename
+            print "Restore is done, removing the dump file '%s'" % filename
 
         os.close(dump_fd)
         os.unlink(filename)
@@ -92,12 +112,3 @@ class Staging:
     def drop(self):
         """ drop the given database: dbname_%(backup_date) """
         pass
-
-
-class NotYetImplementedException(Exception):
-    """ Please try again """
-    pass
-
-class CouldNotGetDumpException(Exception):
-    """ HTTP Return code was not 200 """
-    pass

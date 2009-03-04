@@ -6,6 +6,7 @@ import os, os.path, sys, ConfigParser
 from optparse import OptionParser
 
 import options
+from options import NotYetImplementedException, CouldNotGetDumpException
 
 def parse_options():
     """ get the command to run from command line """
@@ -102,6 +103,8 @@ def parse_config(conffile, dbname, date):
                           config.get(dbname, "backup_base_url"),
                           date,
                           config.get(dbname, "host"),
+                          config.get(dbname, "dbuser"),
+                          config.get(dbname, "dbowner"),
                           config.get(dbname, "postgres_port"),
                           config.get(dbname, "pgbouncer_port"),
                           config.get(dbname, "pgbouncer_conf"),
@@ -121,8 +124,10 @@ if __name__ == '__main__':
 
     # only load staging module after options are set
     from options import VERBOSE, DRY_RUN
+    from options import NotYetImplementedException
+    from options import CouldNotGetDumpException
+    from options import CouldNotConnectPostgreSQLException
     from staging import Staging
-    from staging import NotYetImplementedException, CouldNotGetDumpException
 
     if VERBOSE:
         print "Parsed command='%s', dbname='%s', date='%s'" \
@@ -156,6 +161,14 @@ if __name__ == '__main__':
         print >>sys.stderr, "Error: could not get dump '%s%s'" \
               % (staging.backup_host, staging.backup_filename)
         print >>sys.stderr, e
+
+    except CouldNotConnectPostgreSQLException, e:
+        print >>sys.stderr, "Error: could not connect to server '%s'" \
+              % (staging.host)
+        print >>sys.stderr, e
+        print >>sys.stderr, "Following command might help to debug:"
+        print >>sys.stderr, "  psql -U %s -h %s -p %s %s " \
+              % (staging.dbuser, staging.host, staging.postgres_port, dbname)
             
     except Exception, e:
         print >>sys.stderr, "Error: couldn't %s %s" % (command, dbname)
