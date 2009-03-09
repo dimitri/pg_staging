@@ -7,6 +7,7 @@ from options import VERBOSE, DRY_RUN
 from options import WrongNumberOfArgumentsException
 from options import UnknownSectionException
 
+# cache
 config = None
 
 def parse_config(conffile, dbname, init_staging = True, force_reload = False):
@@ -114,7 +115,13 @@ def list_backups(conffile, args):
             print backup
 
 def switch(conffile, args):
-    pass
+    """ switch default pgbouncer config to given database """
+    dbname, backup_date = parse_args_for_dbname_and_date(args)
+
+    # now load configuration and restore
+    staging = parse_config(conffile, dbname)
+    staging.set_backup_date(backup_date)
+    staging.switch()
 
 def drop(conffile, args):
     """ drop given database """
@@ -150,3 +157,23 @@ def set_config_option(conffile, args):
 
     config.set(dbname, option, value)
     print config.get(dbname, option)
+
+def list_commands(conffile, args):
+    """ provide a user friendly listing of commands """
+
+    for fn in exports:
+        print "%15s: %s" % (fn, exports[fn].__doc__.strip())
+
+##
+## dynamic programming, let's save typing
+##
+exports = {
+    "commands":  list_commands,
+    "restore":   restore,
+    "drop":      drop,
+    "switch":    switch,
+    "databases": list_databases,
+    "backups":   list_backups,
+    "get":       get_config_option,
+    "set":       set_config_option
+    }

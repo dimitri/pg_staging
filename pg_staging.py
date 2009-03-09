@@ -93,52 +93,14 @@ if __name__ == '__main__':
     #staging = commands.parse_config(conffile, dbname)
 
     # and act accordinly
+    if command not in commands.exports:
+        print >>sys.stderr, "Error: no command '%s'" % command
+        sys.exit(1)
+        
     try:
-        if command == "restore":
-            commands.restore(conffile, args)
-
-        elif command == "switch":
-            commands.switch(conffile, args)
-
-        elif command == "drop":
-            commands.drop(conffile, args)
-
-        elif command == "databases":
-            commands.list_databases(conffile, args)
-
-        elif command == "backups":
-            commands.list_backups(conffile, args)
-
-        elif command == "get":
-            commands.get_config_option(conffile, args)
-
-        elif command == "set":
-            commands.set_config_option(conffile, args)
-
-        else:
-            print >>sys.stderr, "Error: unknown command '%s'" % command
-            sys.exit(5)
-
-    except WrongNumberOfArgumentsException, e:
-        print >>sys.stderr, e
-
-    except UnknownSectionException, e:
-        print >>sys.stderr, e
-            
-    except NotYetImplementedException, e:
-        print >>sys.stderr, "Error: %s is not yet implemented." % command
-
-        if e:
-            print >>sys.stderr, e
-
-    except CouldNotGetDumpException, e:
-        print >>sys.stderr, "Error: could not get dump '%s%s'" \
-              % (staging.backup_host, staging.backup_filename)
-        print >>sys.stderr, e
-
-    except CouldNotConnectPostgreSQLException, e:
-        print >>sys.stderr, e
-
+        commands.exports[command](conffile, args)
     except Exception, e:
-        print >>sys.stderr, "Error: couldn't run %s" % command
-        raise
+        print >>sys.stderr, e
+        sys.exit(1)
+
+    sys.exit(0)

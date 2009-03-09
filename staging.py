@@ -85,7 +85,9 @@ class Staging:
         r = conn.getresponse()
 
         if r.status != 200:
-            raise CouldNotGetDumpException, r.reason
+            mesg = "Could not get dump '%s': %s" % (self.backup_filename,
+                                                    r.reason)
+            raise CouldNotGetDumpException, mesg
 
         os.write(dump_fd, r.read())
 
@@ -143,13 +145,14 @@ class Staging:
         os.close(dump_fd)
         os.unlink(filename)
 
-        raise NotYetImplementedException
+        raise NotYetImplementedException, "restore is not yet implemented"
 
     def switch(self):
         """ edit pgbouncer configuration file to have canonical dbname point
         to given date (backup_date) """
-        pass
+        raise NotYetImplementedException, "switch is not yet implemented"
 
     def drop(self):
         """ drop the given database: dbname_%(backup_date) """
-        pass
+        raise NotYetImplementedException, "drop is not yet implemented"
+
