@@ -31,3 +31,8 @@ class UnknownBackupDateException(Exception):
 class NoArgsCommandLineException(Exception):
     """ Signal we want to get the console """
     pass
+
+class UnknownSectionException(Exception):
+    """ What section you want?  """
+    pass
+

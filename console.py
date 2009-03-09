@@ -46,6 +46,32 @@ class Console(cmd.Cmd):
         else:
             self.set_config(args)
 
+    def do_get(self, args):
+        """ get current configuation option value for given database """
+        if self.conffile:
+            if args != "":
+                try:
+                    commands.get_config_option(self.conffile, args.split(" "))
+                except Exception, e:
+                    print e
+            else:
+                print "Error: get dbname option"
+        else:
+            print "Error: no config file"
+
+    def do_set(self, args):
+        """ set a configuration file option """
+        if self.conffile:
+            if args != "":
+                try:
+                    commands.set_config_option(self.conffile, args.split(" "))
+                except Exception, e:
+                    print e
+            else:
+                print "Error: set dbname option value"
+        else:
+            print "Error: no config file"
+
     def do_databases(self, args):
         """ list configured databases """
         if self.conffile:

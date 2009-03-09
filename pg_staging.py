@@ -109,10 +109,22 @@ if __name__ == '__main__':
         elif command == "backups":
             commands.list_backups(conffile, args)
 
+        elif command == "get":
+            commands.get_config_option(conffile, args)
+
+        elif command == "set":
+            commands.set_config_option(conffile, args)
+
         else:
             print >>sys.stderr, "Error: unknown command '%s'" % command
             sys.exit(5)
 
+    except WrongNumberOfArgumentsException, e:
+        print >>sys.stderr, e
+
+    except UnknownSectionException, e:
+        print >>sys.stderr, e
+            
     except NotYetImplementedException, e:
         print >>sys.stderr, "Error: %s is not yet implemented." % command
 
@@ -127,9 +139,6 @@ if __name__ == '__main__':
     except CouldNotConnectPostgreSQLException, e:
         print >>sys.stderr, e
 
-    except WrongNumberOfArgumentsException, e:
-        print >>sys.stderr, e
-            
     except Exception, e:
         print >>sys.stderr, "Error: couldn't run %s" % command
         raise
