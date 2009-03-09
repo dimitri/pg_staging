@@ -14,7 +14,7 @@ class pgrestore:
     """ Will launch correct pgrestore binary to restore a dump file to some
     remote database, which we have to create first """
 
-    def __init__(self, dbname, user, host, port, owner, maintdb):
+    def __init__(self, dbname, user, host, port, owner, maintdb, major):
         """ dump is a filename """
         from options import VERBOSE
 
@@ -24,6 +24,7 @@ class pgrestore:
         self.port    = int(port)
         self.owner   = owner
         self.maintdb = maintdb
+        self.major   = major
 
         self.dsn    = "dbname='%s' user='%s' host='%s' port=%d" \
                       % (self.maintdb, self.user, self.host, self.port)
@@ -92,20 +93,28 @@ class pgrestore:
         """ restore dump file to new database """
         from options import VERBOSE
 
-        cmd = "pg_restore -1 -U %s -O %s -d %s %s" \
-              % (self.user, self.owner, self.dbname, filename)
+        pgr = "/usr/lib/postgresql/%s/bin/pg_restore" % self.major
+
+        if VERBOSE:
+            os.system("ls -l %s" % pgr)
+        
+        cmd = "%s -1 -U %s -d %s %s" \
+              % (pgr, self.owner, self.dbname, filename)
 
         if VERBOSE:
             print cmd
 
-        out  = os.popen(cmd)
-        line = 'stupid init value'
-        while line != '':
-            line = out.readline()
-            # output what pg_restore has to say, don't forget to chop \n
-            print line[:-1]
+        import subprocess
+        code = subprocess.call(cmd.split(" "))
 
-        code = out.close()
+        ## out  = os.popen(cmd)
+        ## line = 'stupid init value'
+        ## while line != '':
+        ##     line = out.readline()
+        ##     # output what pg_restore has to say, don't forget to chop \n
+        ##     print line[:-1]
+        ##
+        ## code = out.close()
 
         if code != 0:
             raise PGRestoreFailedException, "See previous output"
