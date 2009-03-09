@@ -45,6 +45,7 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
                               config.get(dbname, "dbowner"),
                               config.get(dbname, "maintdb"),
                               config.get(dbname, "postgres_port"),
+                              config.get(dbname, "postgres_major"),
                               config.get(dbname, "pgbouncer_port"),
                               config.get(dbname, "pgbouncer_conf"),
                               config.get(dbname, "pgbouncer_rcmd"),
