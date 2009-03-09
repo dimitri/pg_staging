@@ -111,6 +111,14 @@ class Console(cmd.Cmd):
         else:
             print "Error: no config file"
 
+    def do_commands(self, args):
+        """ list available commands and some help too """
+        if self.conffile:
+            commands.list_commands(self.conffile, args)
+        else:
+            print "Error: no config file"
+        
+
     def do_help(self, args):
         """Get help on commands
            'help' or '?' with no arguments prints a list of commands for which help is available

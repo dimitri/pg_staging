@@ -73,7 +73,7 @@ def parse_args_for_dbname_and_date(args):
     return dbname, date
 
 def restore(conffile, args):
-    """ restore a database """
+    """ <dbname> restore a database """
     dbname, backup_date = parse_args_for_dbname_and_date(args)
 
     # now load configuration and restore
@@ -82,7 +82,7 @@ def restore(conffile, args):
     staging.restore()
 
 def list_databases(conffile, args):
-    """ List configured databases """
+    """ list configured databases """
     config = ConfigParser.SafeConfigParser()
 
     try:
@@ -115,7 +115,7 @@ def list_backups(conffile, args):
             print backup
 
 def switch(conffile, args):
-    """ switch default pgbouncer config to given database """
+    """ <dbname> <bdate> switch default pgbouncer config to dbname_bdate """
     dbname, backup_date = parse_args_for_dbname_and_date(args)
 
     # now load configuration and restore
@@ -124,7 +124,7 @@ def switch(conffile, args):
     staging.switch()
 
 def drop(conffile, args):
-    """ drop given database """
+    """ <dbname> drop given database """
     dbname, backup_date = parse_args_for_dbname_and_date(args)
 
     # now load configuration and restore
@@ -133,7 +133,7 @@ def drop(conffile, args):
     staging.drop()
 
 def get_config_option(conffile, args):
-    """ get the current value of the given option for foncig section """
+    """ <dbname> <option> print the current value of [dbname] option """
     if len(args) != 2:
         raise WrongNumberOfArgumentsException, "get dbname option"
 
@@ -143,7 +143,7 @@ def get_config_option(conffile, args):
     print config.get(dbname, option)
 
 def set_config_option(conffile, args):
-    """ set an option in given section of the config file """
+    """ <dbname> <option> <value> for current session only """
 
     if len(args) < 3:
         raise WrongNumberOfArgumentsException, "set dbname option value"
@@ -162,7 +162,7 @@ def list_commands(conffile, args):
     """ provide a user friendly listing of commands """
 
     for fn in exports:
-        print "%15s: %s" % (fn, exports[fn].__doc__.strip())
+        print "%15s %s" % (fn, exports[fn].__doc__.strip())
 
 ##
 ## dynamic programming, let's save typing
