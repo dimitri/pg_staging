@@ -23,6 +23,7 @@ class Staging:
                  dbowner,
                  maintdb,
                  postgres_port,
+                 postgres_major,
                  pgbouncer_port,
                  pgbouncer_conf,
                  pgbouncer_rcmd,
@@ -41,6 +42,7 @@ class Staging:
         self.dbowner         = dbowner
         self.maintdb         = maintdb
         self.postgres_port   = postgres_port
+        self.postgres_major  = postgres_major
         self.pgbouncer_port  = pgbouncer_port
         self.pgbouncer_conf  = pgbouncer_conf
         self.pgbouncer_rcmd  = pgbouncer_rcmd
@@ -133,7 +135,8 @@ class Staging:
                               self.host,
                               self.postgres_port,
                               self.dbowner,
-                              self.maintdb)
+                              self.maintdb,
+                              self.postgres_major)
 
         # while connected, try to create the database
         r.createdb()
@@ -173,7 +176,8 @@ class Staging:
                               self.host,
                               self.postgres_port,
                               self.dbowner,
-                              self.maintdb)
+                              self.maintdb,
+                              self.postgres_major)
         
         r.dropdb()
         
