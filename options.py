@@ -20,6 +20,14 @@ class CouldNotConnectPostgreSQLException(Exception):
     """ Just that, check the config """
     pass
 
+class CreatedbFailedException(Exception):
+    """ create db error """
+    pass
+
+class PGRestoreFailedException(Exception):
+    """ pg_restore failure """
+    pass
+
 class WrongNumberOfArgumentsException(Exception):
     """ The command didn't receive what it wants to work """
     pass

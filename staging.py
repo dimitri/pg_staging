@@ -4,8 +4,9 @@
 
 import os, httplib
 
-from options import VERBOSE, DRY_RUN
-from options import NotYetImplementedException, CouldNotGetDumpException
+from options import NotYetImplementedException
+from options import CouldNotGetDumpException
+from options import PGRestoreFailedException
 import pgbouncer, restore
 
 class Staging:
@@ -13,34 +14,40 @@ class Staging:
     and a destination where to restore it"""
 
     def __init__(self,
-                 dbname,
+                 section,
                  backup_host,
                  backup_base_url,
                  host,
+                 dbname,
                  dbuser,
                  dbowner,
+                 maintdb,
                  postgres_port,
                  pgbouncer_port,
                  pgbouncer_conf,
                  pgbouncer_rcmd,
+                 remove_dump = True,
                  keep_bases  = 2,
                  auto_switch = True,
                  use_sudo    = True):
         """ Create a new staging object, configured """
 
+        self.section         = section
         self.dbname          = dbname
         self.backup_host     = backup_host
         self.backup_base_url = backup_base_url
         self.host            = host
         self.dbuser          = dbuser
         self.dbowner         = dbowner
+        self.maintdb         = maintdb
         self.postgres_port   = postgres_port
         self.pgbouncer_port  = pgbouncer_port
         self.pgbouncer_conf  = pgbouncer_conf
         self.pgbouncer_rcmd  = pgbouncer_rcmd
-        self.keep_bases      = keep_bases
-        self.auto_switch     = auto_switch
-        self.use_sudo        = use_sudo
+        self.remove_dump     = remove_dump == "True"
+        self.keep_bases      = int(keep_bases)
+        self.auto_switch     = auto_switch == "True"
+        self.use_sudo        = use_sudo    == "True"
 
         # init separately, we don't have the information when we create the
         # Staging object from configuration.
@@ -64,34 +71,10 @@ class Staging:
                                   self.dbname,
                                   self.backup_date)
 
+        from options import VERBOSE
         if VERBOSE:
             print "backup filename is '%s'" % self.backup_filename
             print "target database backup date is '%s'" % self.dated_dbname
-
-    def get_dump(self):
-        """ get the dump file from the given URL """
-        if not self.backup_date:
-            raise UnknownBackupDateException
-        
-        import tempfile
-
-        tmp_prefix = "%s.%s." % (self.dbname, self.backup_date)
-
-        dump_fd, filename = tempfile.mkstemp(suffix = ".dump",
-                                             prefix = tmp_prefix)
-
-        conn = httplib.HTTPConnection(self.backup_host)
-        conn.request("GET", self.backup_filename)
-        r = conn.getresponse()
-
-        if r.status != 200:
-            mesg = "Could not get dump '%s': %s" % (self.backup_filename,
-                                                    r.reason)
-            raise CouldNotGetDumpException, mesg
-
-        os.write(dump_fd, r.read())
-
-        return dump_fd, filename
 
     def list_backups(self):
         """ return a list of available backup files for self.dbname """
@@ -117,8 +100,31 @@ class Staging:
         alp = ApacheListingParser(buf, self.dbname)
         return alp.parse()
 
+    def get_dump(self):
+        """ get the dump file from the given URL """
+        if not self.backup_date:
+            raise UnknownBackupDateException
+        
+        filename = "/tmp/%s.%s.dump" % (self.dbname, self.backup_date)
+        dump_fd  = open(filename, "wb")
+
+        conn = httplib.HTTPConnection(self.backup_host)
+        conn.request("GET", self.backup_filename)
+        r = conn.getresponse()
+
+        if r.status != 200:
+            mesg = "Could not get dump '%s': %s" % (self.backup_filename,
+                                                    r.reason)
+            raise CouldNotGetDumpException, mesg
+
+        dump_fd.write(r.read())
+        dump_fd.close()
+
+        return dump_fd, filename
+
     def restore(self):
         """ launch a pg_restore for the current staging configuration """
+        from options import VERBOSE
 
         # first attempt to establish the connection to remote server
         # no need to fetch the big backup file unless this succeed
@@ -126,7 +132,8 @@ class Staging:
                               self.dbuser,
                               self.host,
                               self.postgres_port,
-                              self.dbowner)
+                              self.dbowner,
+                              self.maintdb)
 
         # while connected, try to create the database
         r.createdb()
@@ -134,18 +141,24 @@ class Staging:
         # now, download the dump we need.
         dump_fd, filename = self.get_dump()
 
-        if VERBOSE:
-            os.system("ls -l %s" % filename)
+        # and restore it
+        mesg = None
+        try:
+            if VERBOSE:
+                os.system("ls -l %s" % filename)
+            r.pg_restore(filename)
 
-        r.pg_restore(filename)
+        except Exception, e:
+            mesg  = "Error: couldn't pg_restore from '%s'" % (filename)
+            mesg += "\nDetail: %s" % e
 
-        if VERBOSE:
-            print "Restore is done, removing the dump file '%s'" % filename
+        if self.remove_dump:
+            if VERBOSE:
+                print "rm %s" % filename
+            os.unlink(filename)
 
-        os.close(dump_fd)
-        os.unlink(filename)
-
-        raise NotYetImplementedException, "restore is not yet implemented"
+        if mesg:
+            raise PGRestoreFailedException, mesg
 
     def switch(self):
         """ edit pgbouncer configuration file to have canonical dbname point
@@ -154,5 +167,13 @@ class Staging:
 
     def drop(self):
         """ drop the given database: dbname_%(backup_date) """
-        raise NotYetImplementedException, "drop is not yet implemented"
 
+        r = restore.pgrestore(self.dated_dbname,
+                              self.dbuser,
+                              self.host,
+                              self.postgres_port,
+                              self.dbowner,
+                              self.maintdb)
+        
+        r.dropdb()
+        

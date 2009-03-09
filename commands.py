@@ -36,16 +36,19 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
     if init_staging:
         # prepare the Staging shell object
         try:
-            staging = Staging(dbname,
+            staging = Staging(dbname, # section
                               config.get(dbname, "backup_host"),
                               config.get(dbname, "backup_base_url"),
                               config.get(dbname, "host"),
+                              config.get(dbname, "dbname"),
                               config.get(dbname, "dbuser"),
                               config.get(dbname, "dbowner"),
+                              config.get(dbname, "maintdb"),
                               config.get(dbname, "postgres_port"),
                               config.get(dbname, "pgbouncer_port"),
                               config.get(dbname, "pgbouncer_conf"),
                               config.get(dbname, "pgbouncer_rcmd"),
+                              config.get(dbname, "remove_dump"),
                               config.get(dbname, "keep_bases"),
                               config.get(dbname, "auto_switch"),
                               config.get(dbname, "use_sudo"))
@@ -58,11 +61,10 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
     else:
         return config
 
-def parse_args_for_dbname_and_date(args):
+def parse_args_for_dbname_and_date(args, usage):
     """ returns dbname, date or raise WrongNumberOfArgumentsException """
     if len(args) not in (1, 2):
-        raise WrongNumberOfArgumentsException, \
-              "restore <database> [date]"
+        raise WrongNumberOfArgumentsException, usage
 
     dbname = args[0]
     date   = None
@@ -74,7 +76,8 @@ def parse_args_for_dbname_and_date(args):
 
 def restore(conffile, args):
     """ <dbname> restore a database """
-    dbname, backup_date = parse_args_for_dbname_and_date(args)
+    usage = "restore <dbname> [date]"
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
 
     # now load configuration and restore
     staging = parse_config(conffile, dbname)
@@ -116,7 +119,8 @@ def list_backups(conffile, args):
 
 def switch(conffile, args):
     """ <dbname> <bdate> switch default pgbouncer config to dbname_bdate """
-    dbname, backup_date = parse_args_for_dbname_and_date(args)
+    usage = "switch <dbname> [date]"    
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
 
     # now load configuration and restore
     staging = parse_config(conffile, dbname)
@@ -125,7 +129,8 @@ def switch(conffile, args):
 
 def drop(conffile, args):
     """ <dbname> drop given database """
-    dbname, backup_date = parse_args_for_dbname_and_date(args)
+    usage = "drop <dbname> [date]"    
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
 
     # now load configuration and restore
     staging = parse_config(conffile, dbname)

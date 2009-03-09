@@ -9,9 +9,7 @@
 ## Copyright (c) 2004, James Thiele
 
 import os, cmd, readline, sys
-
 import options, commands
-from options import VERBOSE
 
 class Console(cmd.Cmd):
 
@@ -71,6 +69,11 @@ class Console(cmd.Cmd):
                 print "Error: set dbname option value"
         else:
             print "Error: no config file"
+
+    def do_verbose(self, args):
+        """ toggle verbose on/off """
+        options.VERBOSE = not options.VERBOSE
+        print "verbose: %s" % str(options.VERBOSE)
 
     def do_databases(self, args):
         """ list configured databases """
@@ -174,6 +177,7 @@ class Console(cmd.Cmd):
 
     def set_config(self, conffile, recheck = True):
         """ set self.conffile  """
+        from options import VERBOSE
 
         # check existence and read ability of config file
         if recheck:

@@ -2,25 +2,31 @@
 ## pg_restore support class
 ##
 
-import psycopg2
-from options import VERBOSE, DRY_RUN
+import os, psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+
 from options import NotYetImplementedException
 from options import CouldNotConnectPostgreSQLException
+from options import CreatedbFailedException
+from options import PGRestoreFailedException
 
 class pgrestore:
     """ Will launch correct pgrestore binary to restore a dump file to some
     remote database, which we have to create first """
 
-    def __init__(self, dbname, user, host, port, owner):
+    def __init__(self, dbname, user, host, port, owner, maintdb):
         """ dump is a filename """
-        self.dbname = dbname
-        self.user   = user
-        self.host   = host
-        self.port   = int(port)
-        self.owner  = owner
+        from options import VERBOSE
+
+        self.dbname  = dbname
+        self.user    = user
+        self.host    = host
+        self.port    = int(port)
+        self.owner   = owner
+        self.maintdb = maintdb
 
         self.dsn    = "dbname='%s' user='%s' host='%s' port=%d" \
-                      % (self.dbname, self.user, self.host, self.port)
+                      % (self.maintdb, self.user, self.host, self.port)
         self.conn   = None
 
         try:
@@ -44,17 +50,21 @@ class pgrestore:
 
     def createdb(self):
         """ connect to remote PostgreSQL server to create the new database"""
-
+        from options import VERBOSE
+        
         if VERBOSE:
             print "createdb -O %s %s" % (self.owner, self.dbname)
 
         try:
+            # create database can't run from within a transaction
+            self.conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             curs = self.conn.cursor()
-            curs.execute("CREATE DATABASE %s WITH OWNER %s",
-                         [self.dbname, self.owner])
+            curs.execute('CREATE DATABASE "%s" WITH OWNER "%s"' \
+                         % (self.dbname, self.owner))
             curs.close()
         except Exception, e:
-            raise
+            mesg = 'Error: createdb "%s": %s' % (self.dbname, e)
+            raise CreatedbFailedException, mesg
 
         if VERBOSE:
             print "created database '%s' owned by '%s'" % (self.dbname,
@@ -62,22 +72,40 @@ class pgrestore:
 
     def dropdb(self):
         """ connect to remote PostgreSQL server to drop database"""
+        from options import VERBOSE
 
         if VERBOSE:
             print "dropdb %s" % self.dbname
 
         try:
+            # drop database can't run from within a transaction
+            self.conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             curs = self.conn.cursor()
-            curs.execute("DROP DATABASE %s", [self.dbname])
+            curs.execute('DROP DATABASE "%s"' % self.dbname)
             curs.close()
         except Exception, e:
             raise
 
-        if VERBOSE:
-            print "droped database '%s'" % self.dbname
+        print 'droped database "%s"' % self.dbname
 
     def pg_restore(self, filename):
         """ restore dump file to new database """
+        from options import VERBOSE
+
+        cmd = "pg_restore -1 -U %s -O %s -d %s %s" \
+              % (self.user, self.owner, self.dbname, filename)
 
         if VERBOSE:
-            print "pg_restore < %s" % filename
+            print cmd
+
+        out  = os.popen(cmd)
+        line = 'stupid init value'
+        while line != '':
+            line = out.readline()
+            # output what pg_restore has to say, don't forget to chop \n
+            print line[:-1]
+
+        code = out.close()
+
+        if code != 0:
+            raise PGRestoreFailedException, "See previous output"

@@ -80,7 +80,8 @@ if __name__ == '__main__':
         # no args given, console mode
         from console import Console
         c = Console()
-        c.set_config(str(conffile)) # ok I need to read docs about exceptions
+        # ok I need to read docs about exceptions
+        c.set_config(str(conffile), recheck = False)
         c.cmdloop()
 
         # exiting the console also exit main program
@@ -88,9 +89,6 @@ if __name__ == '__main__':
 
     # only load staging module after options are set
     from options import VERBOSE, DRY_RUN
-
-    # now that VERBOSE and DRY_RUN are correctly set, parse config
-    #staging = commands.parse_config(conffile, dbname)
 
     # and act accordinly
     if command not in commands.exports:
@@ -101,6 +99,8 @@ if __name__ == '__main__':
         commands.exports[command](conffile, args)
     except Exception, e:
         print >>sys.stderr, e
+        ## if VERBOSE:
+        ##     raise
         sys.exit(1)
 
     sys.exit(0)
