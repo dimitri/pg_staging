@@ -98,13 +98,16 @@ if __name__ == '__main__':
             commands.restore(conffile, args)
 
         elif command == "switch":
-            staging.switch()
+            commands.switch(conffile, args)
 
         elif command == "drop":
-            staging.drop()
+            commands.drop(conffile, args)
 
         elif command == "databases":
             commands.list_databases(conffile, args)
+
+        elif command == "backups":
+            commands.list_backups(conffile, args)
 
         else:
             print >>sys.stderr, "Error: unknown command '%s'" % command
@@ -122,6 +125,9 @@ if __name__ == '__main__':
         print >>sys.stderr, e
 
     except CouldNotConnectPostgreSQLException, e:
+        print >>sys.stderr, e
+
+    except WrongNumberOfArgumentsException, e:
         print >>sys.stderr, e
             
     except Exception, e:

@@ -57,13 +57,24 @@ class pgrestore:
             raise
 
         if VERBOSE:
-            print "createdb ok"
+            print "created database '%s' owned by '%s'" % (self.dbname,
+                                                           self.owner)
 
     def dropdb(self):
         """ connect to remote PostgreSQL server to drop database"""
 
         if VERBOSE:
             print "dropdb %s" % self.dbname
+
+        try:
+            curs = self.conn.cursor()
+            curs.execute("DROP DATABASE %s", [self.dbname])
+            curs.close()
+        except Exception, e:
+            raise
+
+        if VERBOSE:
+            print "droped database '%s'" % self.dbname
 
     def pg_restore(self, filename):
         """ restore dump file to new database """

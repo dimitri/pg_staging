@@ -47,18 +47,23 @@ def parse_config(conffile, dbname):
 
     return staging
 
-def restore(conffile, args):
-    """ restore a database """
-
+def parse_args_for_dbname_and_date(args):
+    """ returns dbname, date or raise WrongNumberOfArgumentsException """
     if len(args) not in (1, 2):
         raise WrongNumberOfArgumentsException, \
               "restore <database> [date]"
 
     dbname = args[0]
-    backup_date = None
+    date   = None
 
     if len(args) == 2:
-        backup_date = args[1]
+        date = args[1]
+
+    return dbname, date
+
+def restore(conffile, args):
+    """ restore a database """
+    dbname, backup_date = parse_args_for_dbname_and_date(args)
 
     # now load configuration and restore
     staging = parse_config(conffile, dbname)
@@ -79,11 +84,27 @@ def list_databases(conffile, args):
     for section in config.sections():
         print section
 
+def list_backups(conffile, args):
+    """ list available backups for a given database """
+    if len(args) != 1:
+        raise WrongNumberOfArgumentsException, "backups <dbname>"
+    
+    dbname = args[0]
+    staging = parse_config(conffile, dbname)
+    for backup in staging.list_backups():
+        print backup
+
 def switch(args):
     pass
 
 def drop(args):
-    pass
+    """ drop given database """
+    dbname, backup_date = parse_args_for_dbname_and_date(args)
+
+    # now load configuration and restore
+    staging = parse_config(conffile, dbname)
+    staging.set_backup_date(backup_date)
+    staging.drop()
 
 def set_option(config, args):
     """ set an option in given section of the config file """

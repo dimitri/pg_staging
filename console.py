@@ -54,11 +54,32 @@ class Console(cmd.Cmd):
         else:
             print "Error: no config file"
 
+    def do_backups(self, args):
+        """ list available backups for given database """
+        if self.conffile:
+            if args != "":
+                commands.list_backups(self.conffile, args.split(' '))
+            else:
+                print "Error: backups dbname"
+
+        else:
+            print "Error: no config file"
+
     def do_restore(self, args):
         """ restore <dbname> [<backup_date>] """
         if self.conffile:
             try:
                 commands.restore(self.conffile, args.split(" "))
+            except Exception, e:
+                print e
+        else:
+            print "Error: no config file"
+
+    def do_drop(self, args):
+        """ drop <dbname> [<backup_date>] """
+        if self.conffile:
+            try:
+                commands.drop(self.conffile, args.split(" "))
             except Exception, e:
                 print e
         else:

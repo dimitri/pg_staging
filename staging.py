@@ -2,7 +2,7 @@
 ## Staging Class to organise processing
 ##
 
-import os
+import os, httplib
 
 from options import VERBOSE, DRY_RUN
 from options import NotYetImplementedException, CouldNotGetDumpException
@@ -73,7 +73,7 @@ class Staging:
         if not self.backup_date:
             raise UnknownBackupDateException
         
-        import tempfile, httplib
+        import tempfile
 
         tmp_prefix = "%s.%s." % (self.dbname, self.backup_date)
 
@@ -90,6 +90,30 @@ class Staging:
         os.write(dump_fd, r.read())
 
         return dump_fd, filename
+
+    def list_backups(self):
+        """ return a list of available backup files for self.dbname """
+        from apache_listing import ApacheListingParser
+        
+        conn = httplib.HTTPConnection(self.backup_host)
+        conn.request("GET", self.backup_base_url)
+        r = conn.getresponse()
+
+        if r.status != 200:
+            raise CouldNotGetDumpException, r.reason
+
+        # fill up a buffer with the response
+        import cStringIO
+        buf = cStringIO.StringIO()
+
+        # now parse the apache listing
+        for chunk in r.read():
+            buf.write(chunk)
+
+        # don't forget to re-position 
+        buf.seek(0)
+        alp = ApacheListingParser(buf, self.dbname)
+        return alp.parse()
 
     def restore(self):
         """ launch a pg_restore for the current staging configuration """
