@@ -26,7 +26,12 @@ class pgrestore:
         try:
             self.conn = psycopg2.connect(self.dsn)
         except Exception, e:
-            raise CouldNotConnectPostgreSQLException, e
+            mesg  = "Error: could not connect to server '%s'" % host
+            mesg += "\nDetail: %s" % e
+            mesg += "\nHint: Following command might help to debug:"
+            mesg += "\n  psql -U %s -h %s -p %s %s " \
+                    % (user, host, port, dbname)
+            raise CouldNotConnectPostgreSQLException, mesg
 
         if VERBOSE:
             print "Connected to %s" % self.dsn

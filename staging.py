@@ -16,7 +16,6 @@ class Staging:
                  dbname,
                  backup_host,
                  backup_base_url,
-                 backup_date,
                  host,
                  dbuser,
                  dbowner,
@@ -32,7 +31,6 @@ class Staging:
         self.dbname          = dbname
         self.backup_host     = backup_host
         self.backup_base_url = backup_base_url
-        self.backup_date     = backup_date
         self.host            = host
         self.dbuser          = dbuser
         self.dbowner         = dbowner
@@ -44,18 +42,37 @@ class Staging:
         self.auto_switch     = auto_switch
         self.use_sudo        = use_sudo
 
-        self.backup_filename = "%s%s.%s.dump" \
-                               % (backup_base_url, dbname, backup_date)
+        # init separately, we don't have the information when we create the
+        # Staging object from configuration.
+        self.backup_date     = None
+        self.backup_filename = None
 
-        self.dated_dbname    = "%s_%s" % (self.dbname,
-                                          self.backup_date.replace('-', ''))
+    def set_backup_date(self, date = None):
+        """ set the backup date choosen by the user """
+
+        if date is None:
+            import datetime
+            self.backup_date = datetime.date.today().isoformat()
+        else:
+            self.backup_date = date
+            
+        self.dated_dbname = "%s_%s" % (self.dbname,
+                                       self.backup_date.replace('-', ''))
+
+        self.backup_filename = "%s%s.%s.dump" \
+                               % (self.backup_base_url,
+                                  self.dbname,
+                                  self.backup_date)
 
         if VERBOSE:
             print "backup filename is '%s'" % self.backup_filename
-            print "target database is '%s'" % self.dated_dbname
+            print "target database backup date is '%s'" % self.dated_dbname
 
     def get_dump(self):
         """ get the dump file from the given URL """
+        if not self.backup_date:
+            raise UnknownBackupDateException
+        
         import tempfile, httplib
 
         tmp_prefix = "%s.%s." % (self.dbname, self.backup_date)

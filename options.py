@@ -2,6 +2,8 @@
 ## pg_staging.py common options
 ##
 
+VERSION = 0.2
+
 VERBOSE = False
 DRY_RUN = False
 DEFAULT_CONFIG_FILE = "/etc/hm-tools/pg_staging.ini"
@@ -18,3 +20,14 @@ class CouldNotConnectPostgreSQLException(Exception):
     """ Just that, check the config """
     pass
 
+class WrongNumberOfArgumentsException(Exception):
+    """ The command didn't receive what it wants to work """
+    pass
+
+class UnknownBackupDateException(Exception):
+    """ most of Staging object methods require set_backup_date() """
+    pass
+
+class NoArgsCommandLineException(Exception):
+    """ Signal we want to get the console """
+    pass
