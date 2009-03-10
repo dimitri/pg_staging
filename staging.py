@@ -187,3 +187,14 @@ class Staging:
         
         r.dropdb()
         
+    def dbsize(self):
+        """ return database size, pretty printed """
+        r = restore.pgrestore(self.dated_dbname,
+                              self.dbuser,
+                              self.host,
+                              self.postgres_port,
+                              self.dbowner,
+                              self.maintdb,
+                              self.postgres_major)
+        
+        return self.dated_dbname, r.dbsize()

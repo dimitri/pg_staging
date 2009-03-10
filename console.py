@@ -79,7 +79,6 @@ class Console(cmd.Cmd):
         """ list configured databases """
         if self.conffile:
             commands.list_databases(self.conffile, args)
-
         else:
             print "Error: no config file"
 
@@ -87,9 +86,26 @@ class Console(cmd.Cmd):
         """ list available backups for given database """
         if self.conffile:
             if args != "":
-                commands.list_backups(self.conffile, args.split(' '))
+                try:
+                    commands.list_backups(self.conffile, args.split(' '))
+                except Exception, e:
+                    print e
             else:
                 print "Error: backups dbname"
+
+        else:
+            print "Error: no config file"
+
+    def do_dbsize(self, args):
+        """ print database size """
+        if self.conffile:
+            if args != "":
+                try:
+                    commands.show_dbsize(self.conffile, args.split(' '))
+                except Exception, e:
+                    print e
+            else:
+                print "Error: dbsize dbname"
 
         else:
             print "Error: no config file"

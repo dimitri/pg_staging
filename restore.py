@@ -110,3 +110,19 @@ class pgrestore:
 
         if code != 0:
             raise PGRestoreFailedException, "See previous output"
+
+    def dbsize(self):
+        """ return pretty printed dbsize """
+
+        try:
+            curs = self.conn.cursor()
+            curs.execute('SELECT pg_size_pretty(pg_database_size(%s));',
+                         [self.dbname])
+
+            dbsize = curs.fetchone()[0]            
+            curs.close()
+        except Exception, e:
+            raise
+        
+
+        return dbsize

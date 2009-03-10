@@ -44,3 +44,7 @@ class UnknownSectionException(Exception):
     """ What section you want?  """
     pass
 
+class UnknownOptionException(Exception):
+    """ What option are you talking about? """
+    pass
+

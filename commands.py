@@ -10,6 +10,17 @@ from options import UnknownSectionException
 # cache
 config = None
 
+def get_option(config, section, option):
+    """ if [section] has no option, try in DEFAULT """
+    if config.has_option(section, option):
+        return config.get(section, option)
+
+    if config.has_option('default', option):
+        return config.get(section, 'default')
+
+    mesg = "Unable to read %s.%s configuration" % (section, option)
+    raise UnknownOptionException, mesg
+
 def parse_config(conffile, dbname, init_staging = True, force_reload = False):
     """ parse given INI file, and return it all if init_staging is False,
     return a staging object for dbname section otherwise."""
@@ -37,22 +48,22 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
         # prepare the Staging shell object
         try:
             staging = Staging(dbname, # section
-                              config.get(dbname, "backup_host"),
-                              config.get(dbname, "backup_base_url"),
-                              config.get(dbname, "host"),
-                              config.get(dbname, "dbname"),
-                              config.get(dbname, "dbuser"),
-                              config.get(dbname, "dbowner"),
-                              config.get(dbname, "maintdb"),
-                              config.get(dbname, "postgres_port"),
-                              config.get(dbname, "postgres_major"),
-                              config.get(dbname, "pgbouncer_port"),
-                              config.get(dbname, "pgbouncer_conf"),
-                              config.get(dbname, "pgbouncer_rcmd"),
-                              config.get(dbname, "remove_dump"),
-                              config.get(dbname, "keep_bases"),
-                              config.get(dbname, "auto_switch"),
-                              config.get(dbname, "use_sudo"))
+                              get_option(config, dbname, "backup_host"),
+                              get_option(config, dbname, "backup_base_url"),
+                              get_option(config, dbname, "host"),
+                              get_option(config, dbname, "dbname"),
+                              get_option(config, dbname, "dbuser"),
+                              get_option(config, dbname, "dbowner"),
+                              get_option(config, dbname, "maintdb"),
+                              get_option(config, dbname, "postgres_port"),
+                              get_option(config, dbname, "postgres_major"),
+                              get_option(config, dbname, "pgbouncer_port"),
+                              get_option(config, dbname, "pgbouncer_conf"),
+                              get_option(config, dbname, "pgbouncer_rcmd"),
+                              get_option(config, dbname, "remove_dump"),
+                              get_option(config, dbname, "keep_bases"),
+                              get_option(config, dbname, "auto_switch"),
+                              get_option(config, dbname, "use_sudo"))
         except Exception, e:
             print >>sys.stderr, "Configuration error: %s" % e
             raise
@@ -118,6 +129,16 @@ def list_backups(conffile, args):
         except Exception, e:
             print backup
 
+def show_dbsize(conffile, args):
+    """ show given database size """
+    usage = "dbsize <dbname> [date]"
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
+
+    # now load configuration and restore
+    staging = parse_config(conffile, dbname)
+    staging.set_backup_date(backup_date)
+    print "%25s: %s" % staging.dbsize()
+
 def switch(conffile, args):
     """ <dbname> <bdate> switch default pgbouncer config to dbname_bdate """
     usage = "switch <dbname> [date]"    
@@ -170,6 +191,7 @@ def list_commands(conffile, args):
     for fn in exports:
         print "%10s %s" % (fn, exports[fn].__doc__.strip())
 
+
 ##
 ## dynamic programming, let's save typing
 ##
@@ -181,5 +203,6 @@ exports = {
     "databases": list_databases,
     "backups":   list_backups,
     "get":       get_config_option,
-    "set":       set_config_option
+    "set":       set_config_option,
+    "dbsize":    show_dbsize
     }

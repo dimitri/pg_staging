@@ -53,6 +53,10 @@ def parse_options():
         print >>sys.stderr, "Error: can't be verbose and terse"
         sys.exit(1)
 
+    if options.DRY_RUN:
+        print >>sys.stderr, "Error: dry run is not yet implemented"
+        sys.exit(1)
+
     if options.VERBOSE:
         print "We'll be verbose!"
 
