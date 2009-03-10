@@ -96,6 +96,21 @@ class Console(cmd.Cmd):
         else:
             print "Error: no config file"
 
+    def do_pgbouncer(self, args):
+        """ list available backups for given database """
+        if self.conffile:
+            if args != "":
+                try:
+                    commands.list_pgbouncer_databases(self.conffile,
+                                                      args.split(' '))
+                except Exception, e:
+                    print e
+            else:
+                print "Error: pgbouncer dbname"
+
+        else:
+            print "Error: no config file"
+
     def do_dbsize(self, args):
         """ print database size """
         if self.conffile:

@@ -139,6 +139,17 @@ def show_dbsize(conffile, args):
     staging.set_backup_date(backup_date)
     print "%25s: %s" % staging.dbsize()
 
+def list_pgbouncer_databases(conffile, args):
+    """ list configured pgbouncer databases """
+    usage = "pgbouncer <dbname>"
+    if len(args) != 1:
+        raise WrongNumberOfArgumentsException, usage
+
+    dbname = args[0]
+    staging = parse_config(conffile, dbname)
+    for name, database, host, port in staging.pgbouncer_databases():
+        print "%25s %25s %s:%s" % (name, database, host, port)
+    
 def switch(conffile, args):
     """ <dbname> <bdate> switch default pgbouncer config to dbname_bdate """
     usage = "switch <dbname> [date]"    
@@ -204,5 +215,6 @@ exports = {
     "backups":   list_backups,
     "get":       get_config_option,
     "set":       set_config_option,
-    "dbsize":    show_dbsize
+    "dbsize":    show_dbsize,
+    "pgbouncer": list_pgbouncer_databases
     }

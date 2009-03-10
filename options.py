@@ -2,9 +2,10 @@
 ## pg_staging.py common options
 ##
 
-VERSION = 0.2
+VERSION = 0.3
 
 VERBOSE = False
+TERSE   = False
 DRY_RUN = False
 DEFAULT_CONFIG_FILE = "/etc/hm-tools/pg_staging.ini"
 
@@ -28,6 +29,10 @@ class PGRestoreFailedException(Exception):
     """ pg_restore failure """
     pass
 
+class CouldNotGetPgBouncerConfigException(Exception):
+    """ the ssh to get current pgbouncer config failed  """
+    pass
+
 class WrongNumberOfArgumentsException(Exception):
     """ The command didn't receive what it wants to work """
     pass
@@ -46,5 +51,9 @@ class UnknownSectionException(Exception):
 
 class UnknownOptionException(Exception):
     """ What option are you talking about? """
+    pass
+
+class SubprocessException(Exception):
+    """ we used subprocess.call(command) and it returns non zero """
     pass
 

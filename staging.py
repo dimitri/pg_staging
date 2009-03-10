@@ -7,6 +7,7 @@ import os, httplib
 from options import NotYetImplementedException
 from options import CouldNotGetDumpException
 from options import PGRestoreFailedException
+from options import SubprocessException
 import pgbouncer, restore
 
 class Staging:
@@ -41,9 +42,9 @@ class Staging:
         self.dbuser          = dbuser
         self.dbowner         = dbowner
         self.maintdb         = maintdb
-        self.postgres_port   = postgres_port
+        self.postgres_port   = int(postgres_port)
         self.postgres_major  = postgres_major
-        self.pgbouncer_port  = pgbouncer_port
+        self.pgbouncer_port  = int(pgbouncer_port)
         self.pgbouncer_conf  = pgbouncer_conf
         self.pgbouncer_rcmd  = pgbouncer_rcmd
         self.remove_dump     = remove_dump == "True"
@@ -166,13 +167,73 @@ class Staging:
                 print "rm %s" % filename
             os.unlink(filename)
 
+        if self.auto_switch:
+            self.switch()
+
         if mesg:
             raise PGRestoreFailedException, mesg
 
     def switch(self):
         """ edit pgbouncer configuration file to have canonical dbname point
         to given date (backup_date) """
-        raise NotYetImplementedException, "switch is not yet implemented"
+        import os.path, subprocess
+        from options import VERBOSE, TERSE
+
+        p = pgbouncer.pgbouncer(self.pgbouncer_conf,
+                                self.pgbouncer_rcmd,
+                                self.dbuser,
+                                self.host,
+                                self.pgbouncer_port)
+
+        baseconfdir = os.path.dirname(self.pgbouncer_conf)
+        newconffile = p.switch_to_database(self.dbname,
+                                           self.dated_dbname,
+                                           self.postgres_port)
+
+        if self.use_sudo:
+            sudo = "sudo"
+        else:
+            sudo = ""
+
+        commands = [
+            "scp %s %s:/tmp" % (newconffile, self.host),
+
+            "ssh %s %s mv /tmp/%s %s" \
+            % (self.host, sudo, os.path.basename(newconffile), baseconfdir),
+
+            "ssh %s %s chmod a+r %s/%s" \
+            % (self.host, sudo, baseconfdir, os.path.basename(newconffile)),
+            
+            "ssh %s cd %s && %s ln -sf %s pgbouncer.ini" % \
+            (self.host, baseconfdir, sudo, os.path.basename(newconffile)),
+
+            "ssh %s %s %s" % (self.host, sudo, self.pgbouncer_rcmd)
+            ]
+
+        for cmd in commands:
+            if not TERSE:
+                print cmd
+
+            proc = subprocess.Popen(cmd.split(" "),
+                                    stdout = subprocess.PIPE,
+                                    stderr = subprocess.PIPE)
+
+            out, err = proc.communicate()
+
+            if proc.returncode != 0:
+                # UGLY HACK WARNING
+                # it seems it's ok for pgbouncer reload to ret 3
+                if cmd.find("/etc/init.d/pgbouncer reload") > -1:
+                    if proc.returncode == 3:
+                        break
+                    
+                mesg  = 'Error [%d]: %s' % (proc.returncode, cmd)
+                mesg += '\nDetail: %s' % err
+                raise SubprocessException, mesg
+                
+        if VERBOSE:
+            print "rm %s" % newconffile
+        os.unlink(newconffile)
 
     def drop(self):
         """ drop the given database: dbname_%(backup_date) """
@@ -198,3 +259,16 @@ class Staging:
                               self.postgres_major)
         
         return self.dated_dbname, r.dbsize()
+
+    def pgbouncer_databases(self):
+        """ return pgbouncer database list: name, database, host, port """
+        p = pgbouncer.pgbouncer(self.pgbouncer_conf,
+                                self.pgbouncer_rcmd,
+                                self.dbuser,
+                                self.host,
+                                self.pgbouncer_port)
+
+        for d in p.databases():
+            yield d['name'], d['database'], d['host'], d['port']
+
+        return
