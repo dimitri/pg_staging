@@ -168,7 +168,7 @@ def list_commands(conffile, args):
     """ provide a user friendly listing of commands """
 
     for fn in exports:
-        print "%15s %s" % (fn, exports[fn].__doc__.strip())
+        print "%10s %s" % (fn, exports[fn].__doc__.strip())
 
 ##
 ## dynamic programming, let's save typing
