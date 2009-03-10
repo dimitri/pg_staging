@@ -51,7 +51,7 @@ class pgrestore:
 
     def createdb(self):
         """ connect to remote PostgreSQL server to create the new database"""
-        from options import VERBOSE
+        from options import VERBOSE, TERSE
         
         if VERBOSE:
             print "createdb -O %s %s" % (self.owner, self.dbname)
@@ -67,13 +67,13 @@ class pgrestore:
             mesg = 'Error: createdb "%s": %s' % (self.dbname, e)
             raise CreatedbFailedException, mesg
 
-        if VERBOSE:
+        if not TERSE:
             print "created database '%s' owned by '%s'" % (self.dbname,
                                                            self.owner)
 
     def dropdb(self):
         """ connect to remote PostgreSQL server to drop database"""
-        from options import VERBOSE
+        from options import VERBOSE, TERSE
 
         if VERBOSE:
             print "dropdb %s" % self.dbname
@@ -87,11 +87,12 @@ class pgrestore:
         except Exception, e:
             raise
 
-        print 'droped database "%s"' % self.dbname
+        if not TERSE:
+            print 'droped database "%s"' % self.dbname
 
     def pg_restore(self, filename):
         """ restore dump file to new database """
-        from options import VERBOSE
+        from options import VERBOSE, TERSE
 
         pgr = "/usr/lib/postgresql/%s/bin/pg_restore" % self.major
 
@@ -101,20 +102,11 @@ class pgrestore:
         cmd = "%s -1 -U %s -d %s %s" \
               % (pgr, self.owner, self.dbname, filename)
 
-        if VERBOSE:
+        if not TERSE:
             print cmd
 
         import subprocess
         code = subprocess.call(cmd.split(" "))
-
-        ## out  = os.popen(cmd)
-        ## line = 'stupid init value'
-        ## while line != '':
-        ##     line = out.readline()
-        ##     # output what pg_restore has to say, don't forget to chop \n
-        ##     print line[:-1]
-        ##
-        ## code = out.close()
 
         if code != 0:
             raise PGRestoreFailedException, "See previous output"

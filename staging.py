@@ -73,7 +73,7 @@ class Staging:
                                   self.dbname,
                                   self.backup_date)
 
-        from options import VERBOSE
+        from options import VERBOSE, TERSE
         if VERBOSE:
             print "backup filename is '%s'" % self.backup_filename
             print "target database backup date is '%s'" % self.dated_dbname
@@ -110,6 +110,12 @@ class Staging:
         filename = "/tmp/%s.%s.dump" % (self.dbname, self.backup_date)
         dump_fd  = open(filename, "wb")
 
+        from options import VERBOSE, TERSE
+        if not TERSE:
+            print "fetching '%s' from http://%s%s" % (filename,
+                                                      self.backup_host,
+                                                      self.backup_filename)
+
         conn = httplib.HTTPConnection(self.backup_host)
         conn.request("GET", self.backup_filename)
         r = conn.getresponse()
@@ -126,7 +132,7 @@ class Staging:
 
     def restore(self):
         """ launch a pg_restore for the current staging configuration """
-        from options import VERBOSE
+        from options import VERBOSE, TERSE
 
         # first attempt to establish the connection to remote server
         # no need to fetch the big backup file unless this succeed

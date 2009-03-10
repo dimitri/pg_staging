@@ -38,10 +38,20 @@ def parse_options():
                       default = False,
                       help    = "be verbose and about processing progress")
 
+    parser.add_option("-t", "--terse", action = "store_true",
+                      dest    = "terse",
+                      default = False,
+                      help    = "be terse, almost silent")
+
     (opts, args) = parser.parse_args()
 
+    options.TERSE   = opts.terse
     options.VERBOSE = opts.verbose
     options.DRY_RUN = opts.dry_run
+
+    if options.TERSE and options.VERBOSE:
+        print >>sys.stderr, "Error: can't be verbose and terse"
+        sys.exit(1)
 
     if options.VERBOSE:
         print "We'll be verbose!"
