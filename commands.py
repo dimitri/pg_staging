@@ -6,11 +6,12 @@ from staging import Staging
 from options import VERBOSE, DRY_RUN
 from options import WrongNumberOfArgumentsException
 from options import UnknownSectionException
+from options import UnknownOptionException
 
 # cache
 config = None
 
-def get_option(config, section, option):
+def get_option(config, section, option, optional=False):
     """ if [section] has no option, try in DEFAULT """
     if config.has_option(section, option):
         return config.get(section, option)
@@ -18,8 +19,10 @@ def get_option(config, section, option):
     if config.has_option('default', option):
         return config.get(section, 'default')
 
-    mesg = "Unable to read %s.%s configuration" % (section, option)
-    raise UnknownOptionException, mesg
+    if not optional:
+        mesg = "Unable to read %s.%s configuration" % (section, option)
+        raise UnknownOptionException, mesg
+    return None
 
 def parse_config(conffile, dbname, init_staging = True, force_reload = False):
     """ parse given INI file, and return it all if init_staging is False,
@@ -63,7 +66,14 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
                               get_option(config, dbname, "remove_dump"),
                               get_option(config, dbname, "keep_bases"),
                               get_option(config, dbname, "auto_switch"),
-                              get_option(config, dbname, "use_sudo"))
+                              get_option(config, dbname, "use_sudo"),
+                              get_option(config, dbname, "pg_restore_st"))
+
+            schemas = get_option(config, dbname, "schemas", True)
+            if schemas:
+                schemas = [s.strip() for s in schemas.split(',')]
+            staging.schemas = schemas
+            
         except Exception, e:
             print >>sys.stderr, "Configuration error: %s" % e
             raise

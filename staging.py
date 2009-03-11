@@ -28,10 +28,11 @@ class Staging:
                  pgbouncer_port,
                  pgbouncer_conf,
                  pgbouncer_rcmd,
-                 remove_dump = True,
-                 keep_bases  = 2,
-                 auto_switch = True,
-                 use_sudo    = True):
+                 remove_dump   = True,
+                 keep_bases    = 2,
+                 auto_switch   = True,
+                 use_sudo      = True,
+                 pg_restore_st = True):
         """ Create a new staging object, configured """
 
         self.section         = section
@@ -51,6 +52,8 @@ class Staging:
         self.keep_bases      = int(keep_bases)
         self.auto_switch     = auto_switch == "True"
         self.use_sudo        = use_sudo    == "True"
+        self.pg_restore_st   = pg_restore_st == "True"
+        self.schemas         = None
 
         # init separately, we don't have the information when we create the
         # Staging object from configuration.
@@ -131,6 +134,15 @@ class Staging:
 
         return dump_fd, filename
 
+    def do_remove_dump(self, filename):
+        """ remove dump when self.remove_dump says so """
+        from options import VERBOSE
+        
+        if self.remove_dump:
+            if VERBOSE:
+                print "rm %s" % filename
+            os.unlink(filename)
+
     def restore(self):
         """ launch a pg_restore for the current staging configuration """
         from options import VERBOSE, TERSE
@@ -143,7 +155,9 @@ class Staging:
                               self.postgres_port,
                               self.dbowner,
                               self.maintdb,
-                              self.postgres_major)
+                              self.postgres_major,
+                              self.pg_restore_st,
+                              self.schemas)
 
         # while connected, try to create the database
         r.createdb()
@@ -161,17 +175,14 @@ class Staging:
         except Exception, e:
             mesg  = "Error: couldn't pg_restore from '%s'" % (filename)
             mesg += "\nDetail: %s" % e
-
-        if self.remove_dump:
-            if VERBOSE:
-                print "rm %s" % filename
-            os.unlink(filename)
+            self.do_remove_dump(filename)
+            raise PGRestoreFailedException, mesg
 
         if self.auto_switch:
             self.switch()
 
-        if mesg:
-            raise PGRestoreFailedException, mesg
+        # remove the dump even when there was no exception
+        self.do_remove_dump(filename)
 
     def switch(self):
         """ edit pgbouncer configuration file to have canonical dbname point

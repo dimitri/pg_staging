@@ -113,8 +113,7 @@ if __name__ == '__main__':
         commands.exports[command](conffile, args)
     except Exception, e:
         print >>sys.stderr, e
-        ## if VERBOSE:
-        ##     raise
+        #raise
         sys.exit(1)
 
     sys.exit(0)

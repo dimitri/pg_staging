@@ -111,11 +111,11 @@ class pgbouncer:
         conf = self.parse_config()
         
         if real_dbname not in conf.options('databases'):
-            dsn = 'dbname="%s" port=%d' % (real_dbname, pgport)
+            dsn = 'dbname=%s port=%d' % (real_dbname, pgport)
             conf.set('databases', real_dbname, dsn)
 
         # now set the dbname to point to real_dbname
-        dsn = 'dbname="%s" port=%d' % (real_dbname, pgport)
+        dsn = 'dbname=%s port=%d' % (real_dbname, pgport)
         conf.set('databases', dbname, dsn)
 
         import tempfile

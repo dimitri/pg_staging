@@ -14,17 +14,20 @@ class pgrestore:
     """ Will launch correct pgrestore binary to restore a dump file to some
     remote database, which we have to create first """
 
-    def __init__(self, dbname, user, host, port, owner, maintdb, major):
+    def __init__(self, dbname, user, host, port, owner, maintdb, major,
+                 st = True, schemas = []):
         """ dump is a filename """
         from options import VERBOSE
 
-        self.dbname  = dbname
-        self.user    = user
-        self.host    = host
-        self.port    = int(port)
-        self.owner   = owner
-        self.maintdb = maintdb
-        self.major   = major
+        self.dbname     = dbname
+        self.user       = user
+        self.host       = host
+        self.port       = int(port)
+        self.owner      = owner
+        self.maintdb    = maintdb
+        self.major      = major
+        self.st         = st
+        self.schemas    = schemas
 
         self.dsn    = "dbname='%s' user='%s' host='%s' port=%d" \
                       % (self.maintdb, self.user, self.host, self.port)
@@ -64,7 +67,7 @@ class pgrestore:
                          % (self.dbname, self.owner))
             curs.close()
         except Exception, e:
-            mesg = 'Error: createdb "%s": %s' % (self.dbname, e)
+            mesg = 'Error: createdb: %s' % e
             raise CreatedbFailedException, mesg
 
         if not TERSE:
@@ -98,18 +101,46 @@ class pgrestore:
 
         if VERBOSE:
             os.system("ls -l %s" % pgr)
-        
-        cmd = "%s -1 -U %s -d %s %s" \
-              % (pgr, self.owner, self.dbname, filename)
+            print "Excluding Schemas:", self.ex_schemas
+
+        # Single Transaction?
+        st = ""
+        if self.st:
+            st = "-1"
+
+        # Exclude some schemas at restore time?
+        schemas = None
+        if self.schemas:
+            schemas = ' '.join(['-n "%s"' % x for x in self.schemas])
+
+        ## cmd = "%s %s -h %s -p %d -U %s -d %s %s %s" \
+        ##       % (pgr, st,
+        ##          self.host, self.port, self.owner, self.dbname,
+        ##          schemas, filename)
+
+        cmd = [pgr,
+               st,
+               "-h", self.host,
+               "-p %d" % self.port,
+               "-U", self.owner,
+               "-d", self.dbname,
+               schemas,
+               filename
+               ]
+        cmd = [x for x in cmd if x is not None and x != '']
 
         if not TERSE:
-            print cmd
+            print " ".join(cmd)
 
         import subprocess
-        code = subprocess.call(cmd.split(" "))
+        proc = subprocess.Popen(cmd,
+                                stdout = subprocess.PIPE,
+                                stderr = subprocess.PIPE)
 
-        if code != 0:
-            raise PGRestoreFailedException, "See previous output"
+        out, err = proc.communicate()
+
+        if proc.returncode != 0:
+            raise PGRestoreFailedException, err
 
     def dbsize(self):
         """ return pretty printed dbsize """
