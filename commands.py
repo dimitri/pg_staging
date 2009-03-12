@@ -128,17 +128,8 @@ def list_backups(conffile, args):
     
     dbname = args[0]
     staging = parse_config(conffile, dbname)
-    for backup in staging.list_backups():
-        # only print the date of the backup, leave out the database name and
-        # the .dump extension
-        try:
-            n, d, e = backup.split('.')
-            if n == dbname and e == 'dump':
-                print d
-            else:
-                raise ValueError
-        except Exception, e:
-            print backup
+    for backup, size in staging.list_backups():
+        print "%6s %s " % (size, backup)
 
 def show_dbsize(conffile, args):
     """ show given database size """
