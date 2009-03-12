@@ -209,22 +209,34 @@ class Staging:
         else:
             sudo = ""
 
+        # commands = [(command line, (return, codes, awaited)), ...]
+        # default retcode is a tuple containing only 0
+        retcode = 0,
         commands = [
-            "scp %s %s:/tmp" % (newconffile, self.host),
+            ("scp %s %s:/tmp" % (newconffile, self.host), retcode),
 
-            "ssh %s %s mv /tmp/%s %s" \
-            % (self.host, sudo, os.path.basename(newconffile), baseconfdir),
+            ("ssh %s %s mv /tmp/%s %s" \
+             % (self.host, sudo, os.path.basename(newconffile), baseconfdir),
+             retcode),
 
-            "ssh %s %s chmod a+r %s/%s" \
-            % (self.host, sudo, baseconfdir, os.path.basename(newconffile)),
+            ("ssh %s %s chmod a+r %s/%s" \
+             % (self.host, sudo, baseconfdir, os.path.basename(newconffile)),
+             retcode),
             
-            "ssh %s cd %s && %s ln -sf %s pgbouncer.ini" % \
-            (self.host, baseconfdir, sudo, os.path.basename(newconffile)),
+            ("ssh %s cd %s && %s ln -sf %s pgbouncer.ini" % \
+             (self.host, baseconfdir, sudo, os.path.basename(newconffile)),
+             retcode),
 
-            "ssh %s %s %s" % (self.host, sudo, self.pgbouncer_rcmd)
+            # pgbouncer reload returns 3 whithout error
+            ("ssh %s %s %s" % (self.host, sudo, self.pgbouncer_rcmd),
+             (0, 3))
             ]
 
-        for cmd in commands:
+        # skip scp when target is localhost
+        if self.host in ("localhost", "127.0.0.1"):
+            commands = commands[1:]
+
+        for cmd, returns in commands:
             if not TERSE:
                 print cmd
 
@@ -234,21 +246,11 @@ class Staging:
 
             out, err = proc.communicate()
 
-            if proc.returncode != 0:
-                # UGLY HACK WARNING
-                # it seems it's ok for pgbouncer reload to ret 3
-                if cmd.find("/etc/init.d/pgbouncer reload") > -1:
-                    if proc.returncode == 3:
-                        break
-                    
+            if proc.returncode not in returns:
                 mesg  = 'Error [%d]: %s' % (proc.returncode, cmd)
                 mesg += '\nDetail: %s' % err
                 raise SubprocessException, mesg
                 
-        if VERBOSE:
-            print "rm %s" % newconffile
-        os.unlink(newconffile)
-
     def drop(self):
         """ drop the given database: dbname_%(backup_date) """
 

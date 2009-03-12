@@ -100,7 +100,8 @@ class pgrestore:
 
         if VERBOSE:
             os.system("ls -l %s" % self.restore_cmd)
-            print "Excluding Schemas:", self.ex_schemas
+            if self.schemas:
+                print "Restoring only schemas:", self.schemas
 
         # Single Transaction?
         st = ""
