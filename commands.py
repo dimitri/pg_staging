@@ -67,6 +67,7 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
                               get_option(config, dbname, "keep_bases"),
                               get_option(config, dbname, "auto_switch"),
                               get_option(config, dbname, "use_sudo"),
+                              get_option(config, dbname, "pg_restore"),
                               get_option(config, dbname, "pg_restore_st"))
 
             schemas = get_option(config, dbname, "schemas", True)

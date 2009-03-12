@@ -15,19 +15,20 @@ class pgrestore:
     remote database, which we have to create first """
 
     def __init__(self, dbname, user, host, port, owner, maintdb, major,
-                 st = True, schemas = []):
+                 restore_cmd = "/usr/bin/pg_restore", st = True, schemas = []):
         """ dump is a filename """
         from options import VERBOSE
 
-        self.dbname     = dbname
-        self.user       = user
-        self.host       = host
-        self.port       = int(port)
-        self.owner      = owner
-        self.maintdb    = maintdb
-        self.major      = major
-        self.st         = st
-        self.schemas    = schemas
+        self.dbname      = dbname
+        self.user        = user
+        self.host        = host
+        self.port        = int(port)
+        self.owner       = owner
+        self.maintdb     = maintdb
+        self.major       = major
+        self.restore_cmd = restore_cmd
+        self.st          = st
+        self.schemas     = schemas
 
         self.dsn    = "dbname='%s' user='%s' host='%s' port=%d" \
                       % (self.maintdb, self.user, self.host, self.port)
@@ -97,10 +98,8 @@ class pgrestore:
         """ restore dump file to new database """
         from options import VERBOSE, TERSE
 
-        pgr = "/usr/lib/postgresql/%s/bin/pg_restore" % self.major
-
         if VERBOSE:
-            os.system("ls -l %s" % pgr)
+            os.system("ls -l %s" % self.restore_cmd)
             print "Excluding Schemas:", self.ex_schemas
 
         # Single Transaction?
@@ -118,7 +117,7 @@ class pgrestore:
         ##          self.host, self.port, self.owner, self.dbname,
         ##          schemas, filename)
 
-        cmd = [pgr,
+        cmd = [self.restore_cmd,
                st,
                "-h", self.host,
                "-p %d" % self.port,

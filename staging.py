@@ -32,6 +32,7 @@ class Staging:
                  keep_bases    = 2,
                  auto_switch   = True,
                  use_sudo      = True,
+                 pg_restore    = "/usr/bin/pg_restore",
                  pg_restore_st = True):
         """ Create a new staging object, configured """
 
@@ -52,6 +53,7 @@ class Staging:
         self.keep_bases      = int(keep_bases)
         self.auto_switch     = auto_switch == "True"
         self.use_sudo        = use_sudo    == "True"
+        self.pg_restore      = pg_restore
         self.pg_restore_st   = pg_restore_st == "True"
         self.schemas         = None
 
@@ -156,6 +158,7 @@ class Staging:
                               self.dbowner,
                               self.maintdb,
                               self.postgres_major,
+                              self.pg_restore,
                               self.pg_restore_st,
                               self.schemas)
 
