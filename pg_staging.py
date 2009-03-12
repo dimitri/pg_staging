@@ -38,7 +38,7 @@ def parse_options():
                       default = False,
                       help    = "be verbose and about processing progress")
 
-    parser.add_option("-t", "--terse", action = "store_true",
+    parser.add_option("-q", "--quiet", action = "store_true",
                       dest    = "terse",
                       default = False,
                       help    = "be terse, almost silent")
