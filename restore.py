@@ -15,7 +15,9 @@ class pgrestore:
     remote database, which we have to create first """
 
     def __init__(self, dbname, user, host, port, owner, maintdb, major,
-                 restore_cmd = "/usr/bin/pg_restore", st = True, schemas = []):
+                 restore_cmd = "/usr/bin/pg_restore", st = True,
+                 schemas = [],
+                 connect = True):
         """ dump is a filename """
         from options import VERBOSE
 
@@ -33,6 +35,9 @@ class pgrestore:
         self.dsn    = "dbname='%s' user='%s' host='%s' port=%d" \
                       % (self.maintdb, self.user, self.host, self.port)
         self.conn   = None
+
+        if not connect:
+            return
 
         try:
             self.conn = psycopg2.connect(self.dsn)
@@ -141,6 +146,37 @@ class pgrestore:
 
         if proc.returncode != 0:
             raise PGRestoreFailedException, err
+
+    def get_catalog(self, filename, tables):
+        """ return the backup catalog, pg_restore -l, commenting table data """
+
+        cmd = [self.restore_cmd, "-l", filename]
+
+        import subprocess
+        proc = subprocess.Popen(cmd,
+                                stdout = subprocess.PIPE,
+                                stderr = subprocess.PIPE)
+
+        out, err = proc.communicate()
+
+        if proc.returncode != 0:
+            raise PGRestoreFailedException, err
+
+        from cStringIO import StringIO
+        catalog = StringIO()
+        
+        for line in out:
+            match = False
+            for s, t in [(x.split('.')[0], x.split('.')[1]) for x in tables]:
+                if line.find('TABLE DATA %s %s' % (s, t)) > -1:
+                    match = True
+
+            if match:
+                catalog.write(';%s' % line)
+            else:
+                catalog.write(line)
+
+        return catalog
 
     def dbsize(self):
         """ return pretty printed dbsize """

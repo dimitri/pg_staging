@@ -56,6 +56,7 @@ class Staging:
         self.pg_restore      = pg_restore
         self.pg_restore_st   = pg_restore_st == "True"
         self.schemas         = None
+        self.replication     = None
 
         # init separately, we don't have the information when we create the
         # Staging object from configuration.
@@ -134,7 +135,7 @@ class Staging:
         dump_fd.write(r.read())
         dump_fd.close()
 
-        return dump_fd, filename
+        return filename
 
     def do_remove_dump(self, filename):
         """ remove dump when self.remove_dump says so """
@@ -144,6 +145,35 @@ class Staging:
             if VERBOSE:
                 print "rm %s" % filename
             os.unlink(filename)
+
+    def get_nodata_tables(self):
+        """ return a list of tables to avoid restoring """
+
+        # we avoid restoring tables which we are a replication subscriber of
+        tables = set()
+        if self.replication:
+            for s in self.replication.sections():
+                if self.replication.has_option(s, 'subscriber'):
+                    if self.replication.get(s, 'subscriber') == self.section:
+                        p = set(self.replication.get(s, 'provides').split(' '))
+                        tables = tables.union(p)
+        return tables
+
+    def get_catalog(self, filename):
+        """ get a cleaned out catalog (nodata tables are commented) """
+        r = restore.pgrestore(self.dated_dbname,
+                              self.dbuser,
+                              self.host,
+                              self.postgres_port,
+                              self.dbowner,
+                              self.maintdb,
+                              self.postgres_major,
+                              self.pg_restore,
+                              self.pg_restore_st,
+                              self.schemas)
+
+        catalog = r.get_catalog(filename, self.get_nodata_tables())
+        return catalog
 
     def restore(self):
         """ launch a pg_restore for the current staging configuration """
@@ -166,7 +196,7 @@ class Staging:
         r.createdb()
 
         # now, download the dump we need.
-        dump_fd, filename = self.get_dump()
+        filename = self.get_dump()
 
         # and restore it
         mesg = None

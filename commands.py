@@ -74,6 +74,14 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
             if schemas:
                 schemas = [s.strip() for s in schemas.split(',')]
             staging.schemas = schemas
+
+            replication = get_option(config, dbname, "replication", True)
+            if replication:
+                try:
+                    staging.replication = ConfigParser.SafeConfigParser()
+                    staging.replication.read(replication)
+                except Exception, e:
+                    raise Exception, "Error: unable to read '%s'" % replication
             
         except Exception, e:
             print >>sys.stderr, "Configuration error: %s" % e
@@ -172,6 +180,38 @@ def drop(conffile, args):
     staging.set_backup_date(backup_date)
     staging.drop()
 
+def list_nodata_tables(conffile, args):
+    """ list tables to restore without their data """
+    # experimental only
+    usage = "nodata <dbname> [date]"    
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
+
+    # now load configuration and restore
+    staging = parse_config(conffile, dbname)
+    staging.set_backup_date(backup_date)
+    for t in staging.get_nodata_tables():
+        print t
+
+def catalog(conffile, args):
+    """ <dbname> [dump] print catalog for dbname, edited for nodata tables """
+    # experimental devel facility, not too much error handling
+    usage = "catalog <dbname> [dump]"
+
+    dbname   = args[0]
+    filename = None
+    staging = parse_config(conffile, dbname)
+
+    if len(args) > 1:
+        filename = args[1]
+
+    import os.path
+    if filename is None or not os.path.exists(filename):
+        staging.set_backup_date(None)
+        filename = staging.get_dump()
+        print filename
+
+    print staging.get_catalog(filename)
+
 def get_config_option(conffile, args):
     """ <dbname> <option> print the current value of [dbname] option """
     if len(args) != 2:
@@ -204,7 +244,6 @@ def list_commands(conffile, args):
     for fn in exports:
         print "%10s %s" % (fn, exports[fn].__doc__.strip())
 
-
 ##
 ## dynamic programming, let's save typing
 ##
@@ -218,5 +257,9 @@ exports = {
     "get":       get_config_option,
     "set":       set_config_option,
     "dbsize":    show_dbsize,
-    "pgbouncer": list_pgbouncer_databases
+    "pgbouncer": list_pgbouncer_databases,
+
+    # experimental commands used to add features
+    "nodata":    list_nodata_tables,
+    "catalog":   catalog
     }
