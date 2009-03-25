@@ -27,7 +27,6 @@ class Staging:
                  postgres_major,
                  pgbouncer_port,
                  pgbouncer_conf,
-                 pgbouncer_rcmd,
                  remove_dump   = True,
                  keep_bases    = 2,
                  auto_switch   = True,
@@ -48,7 +47,6 @@ class Staging:
         self.postgres_major  = postgres_major
         self.pgbouncer_port  = int(pgbouncer_port)
         self.pgbouncer_conf  = pgbouncer_conf
-        self.pgbouncer_rcmd  = pgbouncer_rcmd
         self.remove_dump     = remove_dump == "True"
         self.keep_bases      = int(keep_bases)
         self.auto_switch     = auto_switch == "True"
@@ -235,7 +233,6 @@ class Staging:
         to given date (backup_date) """
 
         p = pgbouncer.pgbouncer(self.pgbouncer_conf,
-                                self.pgbouncer_rcmd,
                                 self.dbuser,
                                 self.host,
                                 self.pgbouncer_port)
@@ -250,7 +247,6 @@ class Staging:
         """ edit pgbouncer configuration file to add a database """
         
         p = pgbouncer.pgbouncer(self.pgbouncer_conf,
-                                self.pgbouncer_rcmd,
                                 self.dbuser,
                                 self.host,
                                 self.pgbouncer_port)
@@ -263,7 +259,7 @@ class Staging:
     def pgbouncer_update_conf(self, newconffile):
         """ reconfigure targeted pgbouncer with given file """
         import os.path, subprocess
-        from options import VERBOSE, TERSE
+        from options import VERBOSE, TERSE, CLIENT_SCRIPT
 
         baseconfdir = os.path.dirname(self.pgbouncer_conf)
 
@@ -277,22 +273,10 @@ class Staging:
         retcode = 0,
         commands = [
             ("scp %s %s:/tmp" % (newconffile, self.host), retcode),
-
-            ("ssh %s %s mv /tmp/%s %s" \
-             % (self.host, sudo, os.path.basename(newconffile), baseconfdir),
-             retcode),
-
-            ("ssh %s %s chmod a+r %s/%s" \
-             % (self.host, sudo, baseconfdir, os.path.basename(newconffile)),
-             retcode),
-            
-            ("ssh %s cd %s && %s ln -sf %s pgbouncer.ini" % \
-             (self.host, baseconfdir, sudo, os.path.basename(newconffile)),
-             retcode),
-
-            # pgbouncer reload returns 3 whithout error
-            ("ssh %s %s %s" % (self.host, sudo, self.pgbouncer_rcmd),
-             (0, 3))
+            ("ssh %s ./%s %s %s" % (self.host,
+                                    CLIENT_SCRIPT,
+                                    "/tmp/%s" % newconffile,
+                                    self.pgbouncer_port), retcode)
             ]
 
         # skip scp when target is localhost
@@ -347,7 +331,6 @@ class Staging:
     def pgbouncer_databases(self):
         """ return pgbouncer database list: name, database, host, port """
         p = pgbouncer.pgbouncer(self.pgbouncer_conf,
-                                self.pgbouncer_rcmd,
                                 self.dbuser,
                                 self.host,
                                 self.pgbouncer_port)

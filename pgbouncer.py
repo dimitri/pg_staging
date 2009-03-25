@@ -12,11 +12,10 @@ from options import CouldNotGetPgBouncerConfigException
 class pgbouncer:
     """ PgBouncer class to get some data out of special SHOW commands """
 
-    def __init__(self, conffile, reload_cmd,
+    def __init__(self, conffile,
                  user = 'postgres', host = '127.0.0.1', port = 6432):
         """ pgbouncer instance init """
         self.conffile   = conffile
-        self.reload_cmd = reload_cmd
         self.user       = user
         self.host       = host
         self.port       = port

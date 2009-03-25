@@ -10,6 +10,7 @@ DRY_RUN = False
 TMPDIR  = '/tmp'
 BUFSIZE = 8 * 1024 * 1024
 DEFAULT_CONFIG_FILE = "/etc/hm-tools/pg_staging.ini"
+CLIENT_SCRIPT       = "staging-client.sh"
 
 class NotYetImplementedException(Exception):
     """ Please try again """

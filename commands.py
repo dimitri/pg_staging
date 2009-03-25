@@ -62,7 +62,6 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
                               get_option(config, dbname, "postgres_major"),
                               get_option(config, dbname, "pgbouncer_port"),
                               get_option(config, dbname, "pgbouncer_conf"),
-                              get_option(config, dbname, "pgbouncer_rcmd"),
                               get_option(config, dbname, "remove_dump"),
                               get_option(config, dbname, "keep_bases"),
                               get_option(config, dbname, "auto_switch"),
