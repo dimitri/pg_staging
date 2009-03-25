@@ -312,7 +312,7 @@ class Staging:
         r = restore.pgrestore(self.dated_dbname,
                               self.dbuser,
                               self.host,
-                              self.postgres_port,
+                              self.pgbouncer_port,
                               self.dbowner,
                               self.maintdb,
                               self.postgres_major)
@@ -324,7 +324,7 @@ class Staging:
         r = restore.pgrestore(self.dated_dbname,
                               self.dbuser,
                               self.host,
-                              self.postgres_port,
+                              self.pgbouncer_port,
                               self.dbowner,
                               self.maintdb,
                               self.postgres_major)
