@@ -8,6 +8,7 @@ VERBOSE = False
 TERSE   = False
 DRY_RUN = False
 TMPDIR  = '/tmp'
+BUFSIZE = 8 * 1024 * 1024
 DEFAULT_CONFIG_FILE = "/etc/hm-tools/pg_staging.ini"
 
 class NotYetImplementedException(Exception):

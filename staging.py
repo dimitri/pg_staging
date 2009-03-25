@@ -111,7 +111,7 @@ class Staging:
 
     def get_dump(self):
         """ get the dump file from the given URL """
-        from options import TMPDIR
+        from options import TMPDIR, BUFSIZE
         
         if not self.backup_date:
             raise UnknownBackupDateException
@@ -134,7 +134,14 @@ class Staging:
                                                     r.reason)
             raise CouldNotGetDumpException, mesg
 
-        dump_fd.write(r.read())
+        done = False
+        while not done:
+            data = r.read(BUFSIZE)
+            if data:
+                dump_fd.write(data)
+
+            done = not data or len(data) < BUFSIZE
+
         dump_fd.close()
 
         return filename
