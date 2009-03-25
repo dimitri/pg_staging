@@ -188,10 +188,13 @@ class Staging:
 
         # first attempt to establish the connection to remote server
         # no need to fetch the big backup file unless this succeed
+        #
+        # we will restore from pgbouncer connection, first connection is
+        # made to the maintenance database
         r = restore.pgrestore(self.dated_dbname,
                               self.dbuser,
                               self.host,
-                              self.postgres_port,
+                              self.pgbouncer_port,
                               self.dbowner,
                               self.maintdb,
                               self.postgres_major,

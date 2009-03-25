@@ -46,7 +46,7 @@ class pgrestore:
             mesg += "\nDetail: %s" % e
             mesg += "\nHint: Following command might help to debug:"
             mesg += "\n  psql -U %s -h %s -p %s %s " \
-                    % (user, host, port, dbname)
+                    % (user, host, port, self.maintdb)
             raise CouldNotConnectPostgreSQLException, mesg
 
         if VERBOSE:
