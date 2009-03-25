@@ -238,7 +238,7 @@ class Staging:
         p = pgbouncer.pgbouncer(self.pgbouncer_conf,
                                 self.dbuser,
                                 self.host,
-                                self.pgbouncer_port)
+                                self.postgres_port)
 
         newconffile = p.switch_to_database(self.dbname,
                                            self.dated_dbname,
@@ -252,7 +252,7 @@ class Staging:
         p = pgbouncer.pgbouncer(self.pgbouncer_conf,
                                 self.dbuser,
                                 self.host,
-                                self.pgbouncer_port)
+                                self.postgres_port)
 
         newconffile = p.add_database(self.dated_dbname,
                                      self.postgres_port)
