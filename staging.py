@@ -275,7 +275,7 @@ class Staging:
             ("scp %s %s:/tmp" % (newconffile, self.host), retcode),
             ("ssh %s ./%s %s %s" % (self.host,
                                     CLIENT_SCRIPT,
-                                    "/tmp/%s" % newconffile,
+                                    newconffile,
                                     self.pgbouncer_port), retcode)
             ]
 
