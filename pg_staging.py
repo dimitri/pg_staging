@@ -43,11 +43,17 @@ def parse_options():
                       default = False,
                       help    = "be terse, almost silent")
 
+    parser.add_option("-d", "--tmpdir", dest = "tmpdir",
+                      default = options.TMPDIR,
+                      help    = "temp dir where to fetch dumps, %s" \
+                      % options.TMPDIR)
+
     (opts, args) = parser.parse_args()
 
     options.TERSE   = opts.terse
     options.VERBOSE = opts.verbose
     options.DRY_RUN = opts.dry_run
+    options.TMPDIR  = opts.tmpdir
 
     if options.TERSE and options.VERBOSE:
         print >>sys.stderr, "Error: can't be verbose and terse"

@@ -7,6 +7,7 @@ VERSION = 0.3
 VERBOSE = False
 TERSE   = False
 DRY_RUN = False
+TMPDIR  = '/tmp'
 DEFAULT_CONFIG_FILE = "/etc/hm-tools/pg_staging.ini"
 
 class NotYetImplementedException(Exception):

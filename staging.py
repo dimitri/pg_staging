@@ -111,10 +111,12 @@ class Staging:
 
     def get_dump(self):
         """ get the dump file from the given URL """
+        from options import TMPDIR
+        
         if not self.backup_date:
             raise UnknownBackupDateException
         
-        filename = "/tmp/%s.%s.dump" % (self.dbname, self.backup_date)
+        filename = "%s/%s.%s.dump" % (TMPDIR, self.dbname, self.backup_date)
         dump_fd  = open(filename, "wb")
 
         from options import VERBOSE, TERSE
