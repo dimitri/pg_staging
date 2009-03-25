@@ -103,21 +103,38 @@ class pgbouncer:
 
         return config
 
+    def add_database(self, dbname, pgport, conf = None, write = True):
+        """ edit config file to have a new dbname in it """
+
+        if conf is None:
+            conf = self.parse_config()
+
+        if dbname not in conf.options('databases'):
+            dsn = 'dbname=%s port=%d' % (dbname, pgport)
+            conf.set('databases', dbname, dsn)
+
+        if write:
+            return self.write(conf)
+
     def switch_to_database(self, dbname, real_dbname, pgport):
         """ edit config file to have dbname point to real_dbname, and return
         the temporary filename containing the new config"""
         from options import VERBOSE, TERSE
 
         conf = self.parse_config()
-        
-        if real_dbname not in conf.options('databases'):
-            dsn = 'dbname=%s port=%d' % (real_dbname, pgport)
-            conf.set('databases', real_dbname, dsn)
+
+        # add the real_dbname to the config
+        self.add_database(real_dbname, pgport, conf, write = False)
 
         # now set the dbname to point to real_dbname
         dsn = 'dbname=%s port=%d' % (real_dbname, pgport)
         conf.set('databases', dbname, dsn)
 
+        return self.write(conf)
+
+    def write(self, conf):
+        """ write out given config to a file """
+        from options import TERSE
         import tempfile
         fd, realname = tempfile.mkstemp(prefix = '/tmp/pgbouncer.',
                                         suffix = '.ini')

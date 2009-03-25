@@ -204,6 +204,10 @@ class Staging:
         # while connected, try to create the database
         r.createdb()
 
+        # add the new database to pgbouncer configuration now
+        # it could be that the restore will be connected to pgbouncer
+        self.pgbouncer_add_database()
+
         # now, download the dump we need.
         filename = self.get_dump()
 
@@ -229,8 +233,6 @@ class Staging:
     def switch(self):
         """ edit pgbouncer configuration file to have canonical dbname point
         to given date (backup_date) """
-        import os.path, subprocess
-        from options import VERBOSE, TERSE
 
         p = pgbouncer.pgbouncer(self.pgbouncer_conf,
                                 self.pgbouncer_rcmd,
@@ -238,10 +240,32 @@ class Staging:
                                 self.host,
                                 self.pgbouncer_port)
 
-        baseconfdir = os.path.dirname(self.pgbouncer_conf)
         newconffile = p.switch_to_database(self.dbname,
                                            self.dated_dbname,
                                            self.postgres_port)
+
+        self.pgbouncer_update_conf(newconffile)
+
+    def pgbouncer_add_database(self):
+        """ edit pgbouncer configuration file to add a database """
+        
+        p = pgbouncer.pgbouncer(self.pgbouncer_conf,
+                                self.pgbouncer_rcmd,
+                                self.dbuser,
+                                self.host,
+                                self.pgbouncer_port)
+
+        newconffile = p.add_database(self.dated_dbname,
+                                     self.postgres_port)
+
+        self.pgbouncer_update_conf(newconffile)
+
+    def pgbouncer_update_conf(self, newconffile):
+        """ reconfigure targeted pgbouncer with given file """
+        import os.path, subprocess
+        from options import VERBOSE, TERSE
+
+        baseconfdir = os.path.dirname(self.pgbouncer_conf)
 
         if self.use_sudo:
             sudo = "sudo"
@@ -289,6 +313,11 @@ class Staging:
                 mesg  = 'Error [%d]: %s' % (proc.returncode, cmd)
                 mesg += '\nDetail: %s' % err
                 raise SubprocessException, mesg
+
+        # if target isn't localhost, rm the local temp file
+        # when target host is localhost, we used mv already
+        if self.host not in ("localhost", "127.0.0.1"):
+            os.unlink(newconffile)
                 
     def drop(self):
         """ drop the given database: dbname_%(backup_date) """
