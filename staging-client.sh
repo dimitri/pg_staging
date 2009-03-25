@@ -10,7 +10,7 @@ if [ $EUID -ne 0 ]; then
     exit 1
 fi
 
-if [ ! -r $1 ]; then
+if [ ! -f $1 ]; then
     echo "$0: unable to read new pgbouncer.ini at $1" >&2
     exit 2
 fi
