@@ -157,8 +157,8 @@ class pgrestore:
             if self.schemas:
                 print "Restoring only schemas:", self.schemas
 
-            # now is a good time to create those schemas
-            self.create_schemas()
+        # now is a good time to create those schemas
+        self.create_schemas()
 
         # Single Transaction?
         st = ""
