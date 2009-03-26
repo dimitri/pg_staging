@@ -137,18 +137,28 @@ class pgrestore:
         if not TERSE:
             print " ".join(cmd)
 
-        import subprocess
-        proc = subprocess.Popen(cmd,
-                                stdout = subprocess.PIPE,
-                                stderr = subprocess.STDOUT)
+        ## for some reason subprocess.Popen() is unable to see pg_restore
+        ## stderr and return code
+        ##
+        out  = os.popen(" ".join(cmd))
+        line = 'stupid init value'
+        while line != '':
+            line = out.readline()
+            if VERBOSE:
+                print line[:-1]
 
-        out, err = proc.communicate()
+        returncode = out.close()
 
-        if proc.returncode != 0:
-            raise PGRestoreFailedException, out
+        if VERBOSE:
+            print "pg_restore return:", returncode
+
+        if returncode != 0:
+            mesg = "pg_restore returned %d" % returncode
+            raise PGRestoreFailedException, mesg
 
     def get_catalog(self, filename, tables):
         """ return the backup catalog, pg_restore -l, commenting table data """
+        from options import VERBOSE
 
         cmd = [self.restore_cmd, "-l", filename]
 

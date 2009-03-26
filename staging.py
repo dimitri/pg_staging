@@ -265,12 +265,7 @@ class Staging:
                               self.pg_restore,
                               self.pg_restore_st,
                               self.schemas)
-
-        # while connected, try to create the database
         r.createdb()
-
-        # add the new database to pgbouncer configuration now
-        # it could be that the restore will be connected to pgbouncer
         self.pgbouncer_add_database()
 
         # now restore the dump
@@ -279,15 +274,9 @@ class Staging:
                 os.system("ls -l %s" % filename)
             r.pg_restore(filename)
 
-            # only switch pgbouncer configuration to new database when there
-            # was no restore error
-            if self.auto_switch:
-                self.switch()
-
         except Exception, e:
             mesg  = "Error: couldn't pg_restore from '%s'" % (filename)
             mesg += "\nDetail: %s" % e
-            self.do_remove_dump(filename)
             raise PGRestoreFailedException, mesg        
 
     def switch(self):
