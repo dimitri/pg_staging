@@ -276,10 +276,11 @@ class Staging:
         retcode = 0,
         commands = [
             ("scp %s %s:/tmp" % (newconffile, self.host), retcode),
-            ("ssh %s ./%s %s %s" % (self.host,
-                                    CLIENT_SCRIPT,
-                                    newconffile,
-                                    self.pgbouncer_port), retcode)
+            ("ssh %s %s ./%s %s %s" % (self.host,
+                                       sudo
+                                       CLIENT_SCRIPT,
+                                       newconffile,
+                                       self.pgbouncer_port), retcode)
             ]
 
         # skip scp when target is localhost
