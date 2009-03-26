@@ -140,12 +140,12 @@ class pgrestore:
         import subprocess
         proc = subprocess.Popen(cmd,
                                 stdout = subprocess.PIPE,
-                                stderr = subprocess.PIPE)
+                                stderr = subprocess.STDOUT)
 
         out, err = proc.communicate()
 
         if proc.returncode != 0:
-            raise PGRestoreFailedException, err
+            raise PGRestoreFailedException, out
 
     def get_catalog(self, filename, tables):
         """ return the backup catalog, pg_restore -l, commenting table data """
