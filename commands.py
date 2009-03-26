@@ -74,6 +74,11 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
                 schemas = [s.strip() for s in schemas.split(',')]
             staging.schemas = schemas
 
+            users = get_option(config, dbname, "users", True)
+            if users:
+                users = [u.strip() for u in users.split(',')]
+            staging.users = users
+
             replication = get_option(config, dbname, "replication", True)
             if replication:
                 try:

@@ -54,6 +54,7 @@ class Staging:
         self.pg_restore      = pg_restore
         self.pg_restore_st   = pg_restore_st == "True"
         self.schemas         = None
+        self.users           = None
         self.replication     = None
 
         # init separately, we don't have the information when we create the
@@ -177,7 +178,8 @@ class Staging:
                               self.postgres_major,
                               self.pg_restore,
                               self.pg_restore_st,
-                              self.schemas)
+                              self.schemas,
+                              self.users)
 
         catalog = r.get_catalog(filename, self.get_nodata_tables())
         return catalog
@@ -200,7 +202,8 @@ class Staging:
                               self.postgres_major,
                               self.pg_restore,
                               self.pg_restore_st,
-                              self.schemas)
+                              self.schemas,
+                              self.users)
 
         # while connected, try to create the database
         r.createdb()
@@ -264,7 +267,8 @@ class Staging:
                               self.postgres_major,
                               self.pg_restore,
                               self.pg_restore_st,
-                              self.schemas)
+                              self.schemas,
+                              self.users)
         r.createdb()
         self.pgbouncer_add_database()
 
@@ -357,7 +361,6 @@ class Staging:
                 
     def drop(self):
         """ drop the given database: dbname_%(backup_date) """
-
         r = restore.pgrestore(self.dated_dbname,
                               self.dbuser,
                               self.host,
@@ -365,8 +368,15 @@ class Staging:
                               self.dbowner,
                               self.maintdb,
                               self.postgres_major)
-        
+
+        # pause the database beforehand
+        self.pgbouncer_pause(self.dated_dbname)
+
+        # and dropdb now that there's no more connection to it
         r.dropdb()
+
+        # resume it
+        self.pgbouncer_resume(self.dated_dbname)
         
     def dbsize(self):
         """ return database size, pretty printed """
@@ -394,6 +404,9 @@ class Staging:
 
     def pgbouncer_pause(self, dbname):
         """ pause given database """
+        from options import TERSE
+        if not TERSE:
+            print "pause %s;" % dbname
         p = pgbouncer.pgbouncer(self.pgbouncer_conf,
                                 self.dbuser,
                                 self.host,
@@ -404,6 +417,9 @@ class Staging:
 
     def pgbouncer_resume(self, dbname):
         """ resume given database """
+        from options import TERSE
+        if not TERSE:
+            print "resume %s;" % dbname
         p = pgbouncer.pgbouncer(self.pgbouncer_conf,
                                 self.dbuser,
                                 self.host,

@@ -16,7 +16,7 @@ class pgrestore:
 
     def __init__(self, dbname, user, host, port, owner, maintdb, major,
                  restore_cmd = "/usr/bin/pg_restore", st = True,
-                 schemas = [],
+                 schemas = [], users = [],
                  connect = True):
         """ dump is a filename """
         from options import VERBOSE
@@ -31,16 +31,17 @@ class pgrestore:
         self.restore_cmd = restore_cmd
         self.st          = st
         self.schemas     = schemas
+        self.users       = users
 
         self.dsn    = "dbname='%s' user='%s' host='%s' port=%d" \
                       % (self.maintdb, self.user, self.host, self.port)
-        self.conn   = None
+        self.mconn  = None
 
         if not connect:
             return
 
         try:
-            self.conn = psycopg2.connect(self.dsn)
+            self.mconn = psycopg2.connect(self.dsn)
         except Exception, e:
             mesg  = "Error: could not connect to server '%s'" % host
             mesg += "\nDetail: %s" % e
@@ -54,9 +55,9 @@ class pgrestore:
 
     def __del__(self):
         """ destructor, close the PG connection """
-        if self.conn is not None:
-            self.conn.close()
-            self.conn = None
+        if self.mconn is not None:
+            self.mconn.close()
+            self.mconn = None
 
     def createdb(self):
         """ connect to remote PostgreSQL server to create the new database"""
@@ -67,8 +68,8 @@ class pgrestore:
 
         try:
             # create database can't run from within a transaction
-            self.conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-            curs = self.conn.cursor()
+            self.mconn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+            curs = self.mconn.cursor()
             curs.execute('CREATE DATABASE "%s" WITH OWNER "%s"' \
                          % (self.dbname, self.owner))
             curs.close()
@@ -89,8 +90,8 @@ class pgrestore:
 
         try:
             # drop database can't run from within a transaction
-            self.conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-            curs = self.conn.cursor()
+            self.mconn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+            curs = self.mconn.cursor()
             curs.execute('DROP DATABASE "%s"' % self.dbname)
             curs.close()
         except Exception, e:
@@ -98,6 +99,41 @@ class pgrestore:
 
         if not TERSE:
             print 'droped database "%s"' % self.dbname
+
+    def create_schemas_and_users(self):
+        """ Create the database needed schemas """
+        from options import VERBOSE, TERSE
+        if not TERSE:
+            print "Create Schemas %s" % ' '.join(self.schemas)
+
+        try:
+            dsn  = "dbname='%s' user='%s' host='%s' port=%d" \
+                          % (self.dbname, self.user, self.host, self.port)
+            conn = psycopg2.connect(dsn)
+            curs = conn.cursor()
+            
+            for s in self.schemas:
+                # public will have been created at createdb time
+                if s != 'public':
+
+                    sql = 'CREATE SCHEMA "%s" AUTHORIZATION "%s";'\
+                          % (s, self.owner)
+
+                    if VERBOSE:
+                        print " ", sql                        
+                    curs.execute(sql)
+
+            for u in self.users:
+                sql = 'CREATE USER "%s" WITH NOSUPERUSER;' % u
+                if VERBOSE:
+                    print " ", sql
+                        
+                curs.execute(sql)
+
+            conn.commit()
+            conn.close()
+        except Exception, e:
+            raise
 
     def pg_restore(self, filename):
         """ restore dump file to new database """
@@ -107,6 +143,9 @@ class pgrestore:
             os.system("ls -l %s" % self.restore_cmd)
             if self.schemas:
                 print "Restoring only schemas:", self.schemas
+
+        # always do this
+        self.create_schemas_and_users()
 
         # Single Transaction?
         st = ""
@@ -192,7 +231,7 @@ class pgrestore:
         """ return pretty printed dbsize """
 
         try:
-            curs = self.conn.cursor()
+            curs = self.mconn.cursor()
             curs.execute('SELECT pg_size_pretty(pg_database_size(%s));',
                          [self.dbname])
 
