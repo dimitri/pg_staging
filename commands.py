@@ -158,6 +158,38 @@ def list_pgbouncer_databases(conffile, args):
     staging = parse_config(conffile, dbname)
     for name, database, host, port in staging.pgbouncer_databases():
         print "%25s %25s %s:%s" % (name, database, host, port)
+
+def pause_pgbouncer_database(conffile, args):
+    """ pause <dbname> [date] (when no date given, not expanded to today) """
+    usage = "pause <dbname> [date]"
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
+
+    # now load configuration and restore
+    staging = parse_config(conffile, dbname)
+
+    if backup_date is None:
+        dbname = staging.dbname
+    else:
+        staging.set_backup_date(backup_date)
+        dbname = staging.dated_dbname
+
+    staging.pgbouncer_pause(dbname)
+
+def resume_pgbouncer_database(conffile, args):
+    """ resume <dbname> [date] (when no date given, not expanded to today) """
+    usage = "resume <dbname> [date]"
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
+
+    # now load configuration and restore
+    staging = parse_config(conffile, dbname)
+
+    if backup_date is None:
+        dbname = staging.dbname
+    else:
+        staging.set_backup_date(backup_date)
+        dbname = staging.dated_dbname
+        
+    staging.pgbouncer_resume(dbname)
     
 def switch(conffile, args):
     """ <dbname> <bdate> switch default pgbouncer config to dbname_bdate """
@@ -247,16 +279,23 @@ def list_commands(conffile, args):
 ## dynamic programming, let's save typing
 ##
 exports = {
+    # nice help
     "commands":  list_commands,
+
+    # main operation
     "restore":   restore,
     "drop":      drop,
     "switch":    switch,
+
+    # listing
     "databases": list_databases,
     "backups":   list_backups,
-    "get":       get_config_option,
-    "set":       set_config_option,
     "dbsize":    show_dbsize,
+
+    # pgbouncer
     "pgbouncer": list_pgbouncer_databases,
+    "pause":     pause_pgbouncer_database,
+    "resume":    resume_pgbouncer_database,
 
     # experimental commands used to add features
     "nodata":    list_nodata_tables,

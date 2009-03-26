@@ -219,14 +219,16 @@ class Staging:
                 os.system("ls -l %s" % filename)
             r.pg_restore(filename)
 
+            # only switch pgbouncer configuration to new database when there
+            # was no restore error
+            if self.auto_switch:
+                self.switch()
+
         except Exception, e:
             mesg  = "Error: couldn't pg_restore from '%s'" % (filename)
             mesg += "\nDetail: %s" % e
             self.do_remove_dump(filename)
             raise PGRestoreFailedException, mesg
-
-        if self.auto_switch:
-            self.switch()
 
         # remove the dump even when there was no exception
         self.do_remove_dump(filename)
@@ -343,3 +345,22 @@ class Staging:
             yield d['name'], d['database'], d['host'], d['port']
 
         return
+
+    def pgbouncer_pause(self, dbname):
+        """ pause given database """
+        p = pgbouncer.pgbouncer(self.pgbouncer_conf,
+                                self.dbuser,
+                                self.host,
+                                self.pgbouncer_port)
+
+        p.pause(dbname)
+
+
+    def pgbouncer_resume(self, dbname):
+        """ resume given database """
+        p = pgbouncer.pgbouncer(self.pgbouncer_conf,
+                                self.dbuser,
+                                self.host,
+                                self.pgbouncer_port)
+
+        p.resume(dbname)

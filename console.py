@@ -111,6 +111,36 @@ class Console(cmd.Cmd):
         else:
             print "Error: no config file"
 
+    def do_pause(self, args):
+        """ pause given database in pgbouncer """
+        if self.conffile:
+            if args != "":
+                try:
+                    commands.pause_pgbouncer_database(self.conffile,
+                                                      args.split(' '))
+                except Exception, e:
+                    print e
+            else:
+                print "Error: pause dbname [date]"
+
+        else:
+            print "Error: no config file"
+
+    def do_resume(self, args):
+        """ resume given database in pgbouncer """
+        if self.conffile:
+            if args != "":
+                try:
+                    commands.resume_pgbouncer_database(self.conffile,
+                                                      args.split(' '))
+                except Exception, e:
+                    print e
+            else:
+                print "Error: pause dbname [date]"
+
+        else:
+            print "Error: no config file"
+
     def do_dbsize(self, args):
         """ print database size """
         if self.conffile:

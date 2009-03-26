@@ -146,6 +146,46 @@ class pgbouncer:
 
         return realname
 
+    def pause(self, dbname):
+        """ pause given database """
+        from options import VERBOSE
+
+        psql = 'psql -h %s -p %s -U %s %s -c "PAUSE %s;"' \
+               % (self.host, self.port, self.user, self.dbname, dbname)
+
+        if VERBOSE:
+            print psql
+
+        out  = os.popen(psql)
+        line = 'stupid init value'
+        while line != '':
+            line = out.readline()[:-1]
+
+        returncode = out.close()
+
+        if returncode and returncode != 0:
+            raise Exception, line
+
+    def resume(self, dbname):
+        """ resume given database """
+        from options import VERBOSE
+
+        psql = '/usr/bin/psql -h %s -p %s -U %s %s -c "RESUME %s;"' \
+               % (self.host, self.port, self.user, self.dbname, dbname)
+
+        if VERBOSE:
+            print psql
+
+        out  = os.popen(psql)
+        line = 'stupid init value'
+        while line != '':
+            line = out.readline()[:-1]
+
+        returncode = out.close()
+
+        if returncode and returncode != 0:
+            raise Exception, line        
+
 if __name__ == '__main__':
     p = pgbouncer('/etc/pgbouncer/pgbouncer.ini',
                   'sudo /etc/init.d/pgbouncer/reload')
