@@ -114,6 +114,16 @@ def restore(conffile, args):
     staging.set_backup_date(backup_date)
     staging.restore()
 
+def restore_from_dump(conffile, args):
+    """ <dbname> <dumpfile> """
+    usage = "load <dumpfile> <dbname>"
+
+    if len(args) != 2:
+        raise WrongNumberOfArgumentsException, "load <dumpfile> <dbname>"
+    
+    staging = parse_config(conffile, args[1])
+    staging.load(args[0])
+
 def list_databases(conffile, args):
     """ list configured databases """
     config = ConfigParser.SafeConfigParser()
@@ -286,6 +296,7 @@ exports = {
     "restore":   restore,
     "drop":      drop,
     "switch":    switch,
+    "load":      restore_from_dump,
 
     # listing
     "databases": list_databases,

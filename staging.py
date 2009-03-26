@@ -233,6 +233,63 @@ class Staging:
         # remove the dump even when there was no exception
         self.do_remove_dump(filename)
 
+    def load(self, filename):
+        """ will pg_restore from the already present dumpfile and determine
+        the backup date from the file, which isn't removed """
+        from options import VERBOSE, TERSE
+
+        # first parse the dump filename
+        try:
+            dbname, date, ext = filename.split('.')
+            self.backup_date  = date.replace('-', '')
+
+            # just validate it's an 8 figures integer
+            if len(self.backup_date) != 8:
+                raise ValueError
+            x = int(self.backup_date)
+
+            self.dated_dbname = "%s_%s" % (self.dbname, self.backup_date)
+            
+        except ValueError, e:
+            mesg = "load: '%s' isn't a valid dump file name" % filename
+            raise ParseDumpFileException, mesg
+        
+        # see comments in previous self.restore() method
+        r = restore.pgrestore(self.dated_dbname,
+                              self.dbuser,
+                              self.host,
+                              self.pgbouncer_port,
+                              self.dbowner,
+                              self.maintdb,
+                              self.postgres_major,
+                              self.pg_restore,
+                              self.pg_restore_st,
+                              self.schemas)
+
+        # while connected, try to create the database
+        r.createdb()
+
+        # add the new database to pgbouncer configuration now
+        # it could be that the restore will be connected to pgbouncer
+        self.pgbouncer_add_database()
+
+        # now restore the dump
+        try:
+            if VERBOSE:
+                os.system("ls -l %s" % filename)
+            r.pg_restore(filename)
+
+            # only switch pgbouncer configuration to new database when there
+            # was no restore error
+            if self.auto_switch:
+                self.switch()
+
+        except Exception, e:
+            mesg  = "Error: couldn't pg_restore from '%s'" % (filename)
+            mesg += "\nDetail: %s" % e
+            self.do_remove_dump(filename)
+            raise PGRestoreFailedException, mesg        
+
     def switch(self):
         """ edit pgbouncer configuration file to have canonical dbname point
         to given date (backup_date) """

@@ -60,3 +60,7 @@ class SubprocessException(Exception):
     """ we used subprocess.call(command) and it returns non zero """
     pass
 
+class ParseDumpFileException(Exception):
+    """ can not parse the dump file: allopass_db.`date -I`.dump """
+    pass
+

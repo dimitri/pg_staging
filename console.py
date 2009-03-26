@@ -165,6 +165,16 @@ class Console(cmd.Cmd):
         else:
             print "Error: no config file"
 
+    def do_load(self, args):
+        """ load <dumpfile> <dbname> """
+        if self.conffile:
+            try:
+                commands.restore_from_dump(self.conffile, args.split(" "))
+            except Exception, e:
+                print e
+        else:
+            print "Error: no config file"
+
     def do_drop(self, args):
         """ drop <dbname> [<backup_date>] """
         if self.conffile:
