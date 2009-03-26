@@ -277,7 +277,7 @@ class Staging:
         commands = [
             ("scp %s %s:/tmp" % (newconffile, self.host), retcode),
             ("ssh %s %s ./%s %s %s" % (self.host,
-                                       sudo
+                                       sudo,
                                        CLIENT_SCRIPT,
                                        newconffile,
                                        self.pgbouncer_port), retcode)
