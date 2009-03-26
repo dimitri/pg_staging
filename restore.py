@@ -58,6 +58,27 @@ class pgrestore:
             self.mconn.close()
             self.mconn = None
 
+    def source_sql_file(self, filename):
+        """ load the given SQL file into the maintenance connection """
+        from options import VERBOSE
+
+        # we use the psql console in order to support extended commands
+        cmd = "psql -U %s -h %s -p %s -f %s %s " \
+              % (self.user, self.host, self.port, filename, self.maintdb)
+
+        if VERBOSE:
+            print cmd
+
+        out  = os.popen(cmd)
+        line = 'stupid init value'
+        while line != '':
+            line = out.readline()
+            if VERBOSE:
+                print line[:-1]
+
+        returncode = out.close()
+        return returncode
+
     def createdb(self):
         """ connect to remote PostgreSQL server to create the new database"""
         from options import VERBOSE, TERSE

@@ -53,6 +53,7 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
             staging = Staging(dbname, # section
                               get_option(config, dbname, "backup_host"),
                               get_option(config, dbname, "backup_base_url"),
+                              get_option(config, dbname, "dumpall_url"),
                               get_option(config, dbname, "host"),
                               get_option(config, dbname, "dbname"),
                               get_option(config, dbname, "dbuser"),
@@ -103,6 +104,16 @@ def parse_args_for_dbname_and_date(args, usage):
         date = args[1]
 
     return dbname, date
+
+def init_cluster(conffile, args):
+    """ <dbname> """
+    usage = "init <dbname>"
+
+    if len(args) != 1:
+        raise WrongNumberOfArgumentsException, "init <dbname>"
+
+    staging = parse_config(conffile, args[0])
+    staging.init_cluster()
 
 def restore(conffile, args):
     """ <dbname> restore a database """
@@ -293,6 +304,7 @@ exports = {
     "commands":  list_commands,
 
     # main operation
+    "init":      init_cluster,
     "restore":   restore,
     "drop":      drop,
     "switch":    switch,

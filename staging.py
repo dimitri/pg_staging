@@ -18,6 +18,7 @@ class Staging:
                  section,
                  backup_host,
                  backup_base_url,
+                 dumpall_url,
                  host,
                  dbname,
                  dbuser,
@@ -39,6 +40,7 @@ class Staging:
         self.dbname          = dbname
         self.backup_host     = backup_host
         self.backup_base_url = backup_base_url
+        self.dumpall_url     = dumpall_url
         self.host            = host
         self.dbuser          = dbuser
         self.dbowner         = dbowner
@@ -107,29 +109,25 @@ class Staging:
         alp = ApacheListingParser(buf, self.dbname)
         return alp.parse()
 
-    def get_dump(self):
-        """ get the dump file from the given URL """
-        from options import TMPDIR, BUFSIZE
-        
-        if not self.backup_date:
-            raise UnknownBackupDateException
-        
-        filename = "%s/%s.%s.dump" % (TMPDIR, self.dbname, self.backup_date)
-        dump_fd  = open(filename, "wb")
+    def wget(self, host, url, outfile):
+        """ fetch the given url at given host and return where we stored it """
+        from options import TERSE, TMPDIR, BUFSIZE
 
-        from options import VERBOSE, TERSE
+        filename = "%s/%s" % (TMPDIR, outfile)
+
         if not TERSE:
             print "fetching '%s' from http://%s%s" % (filename,
-                                                      self.backup_host,
-                                                      self.backup_filename)
+                                                      host,
+                                                      url)
+            
+        dump_fd  = open(filename, "wb")
 
-        conn = httplib.HTTPConnection(self.backup_host)
-        conn.request("GET", self.backup_filename)
+        conn = httplib.HTTPConnection(host)
+        conn.request("GET", url)
         r = conn.getresponse()
 
         if r.status != 200:
-            mesg = "Could not get dump '%s': %s" % (self.backup_filename,
-                                                    r.reason)
+            mesg = "Could not get dump '%s': %s" % (url, r.reason)
             raise CouldNotGetDumpException, mesg
 
         done = False
@@ -143,6 +141,41 @@ class Staging:
         dump_fd.close()
 
         return filename
+
+    def init_cluster(self):
+        """ init a PostgreSQL cluster from pg_dumpall -g sql script """
+        # unused here, in fact
+        self.dated_dbname = None
+        
+        basename = os.path.basename(self.dumpall_url)
+        filename = self.wget(self.backup_host, self.dumpall_url, basename)
+
+        # the restore object host the source sql file method
+        r = restore.pgrestore(self.dated_dbname,
+                              self.dbuser,
+                              self.host,
+                              self.pgbouncer_port,
+                              self.dbowner,
+                              self.maintdb,
+                              self.postgres_major,
+                              self.pg_restore,
+                              self.pg_restore_st,
+                              self.schemas)
+
+        # psql -f filename
+        r.source_sql_file(filename)
+
+        # don't forget to clean up the mess
+        os.unlink(filename)
+        return    
+
+    def get_dump(self):
+        """ get the dump file from the given URL """
+        if not self.backup_date:
+            raise UnknownBackupDateException
+        
+        filename = "%s.%s.dump" % (self.dbname, self.backup_date)
+        return self.wget(self.backup_host, filename)
 
     def do_remove_dump(self, filename):
         """ remove dump when self.remove_dump says so """

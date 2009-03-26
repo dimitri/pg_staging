@@ -155,6 +155,16 @@ class Console(cmd.Cmd):
         else:
             print "Error: no config file"
 
+    def do_init(self, args):
+        """ init <dbname> """
+        if self.conffile:
+            try:
+                commands.init_cluster(self.conffile, args.split(" "))
+            except Exception, e:
+                print e
+        else:
+            print "Error: no config file"
+
     def do_restore(self, args):
         """ restore <dbname> [<backup_date>] """
         if self.conffile:
