@@ -54,7 +54,6 @@ class Staging:
         self.pg_restore      = pg_restore
         self.pg_restore_st   = pg_restore_st == "True"
         self.schemas         = None
-        self.users           = None
         self.replication     = None
 
         # init separately, we don't have the information when we create the
@@ -178,8 +177,7 @@ class Staging:
                               self.postgres_major,
                               self.pg_restore,
                               self.pg_restore_st,
-                              self.schemas,
-                              self.users)
+                              self.schemas)
 
         catalog = r.get_catalog(filename, self.get_nodata_tables())
         return catalog
@@ -202,8 +200,7 @@ class Staging:
                               self.postgres_major,
                               self.pg_restore,
                               self.pg_restore_st,
-                              self.schemas,
-                              self.users)
+                              self.schemas)
 
         # while connected, try to create the database
         r.createdb()
@@ -267,8 +264,7 @@ class Staging:
                               self.postgres_major,
                               self.pg_restore,
                               self.pg_restore_st,
-                              self.schemas,
-                              self.users)
+                              self.schemas)
         r.createdb()
         self.pgbouncer_add_database()
 

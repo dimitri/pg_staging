@@ -16,7 +16,7 @@ class pgrestore:
 
     def __init__(self, dbname, user, host, port, owner, maintdb, major,
                  restore_cmd = "/usr/bin/pg_restore", st = True,
-                 schemas = [], users = [],
+                 schemas = [],
                  connect = True):
         """ dump is a filename """
         from options import VERBOSE
@@ -31,7 +31,6 @@ class pgrestore:
         self.restore_cmd = restore_cmd
         self.st          = st
         self.schemas     = schemas
-        self.users       = users
 
         self.dsn    = "dbname='%s' user='%s' host='%s' port=%d" \
                       % (self.maintdb, self.user, self.host, self.port)
@@ -100,7 +99,7 @@ class pgrestore:
         if not TERSE:
             print 'droped database "%s"' % self.dbname
 
-    def create_schemas_and_users(self):
+    def create_schemas(self):
         """ Create the database needed schemas """
         from options import VERBOSE, TERSE
         if not TERSE:
@@ -123,13 +122,6 @@ class pgrestore:
                         print " ", sql                        
                     curs.execute(sql)
 
-            for u in self.users:
-                sql = 'CREATE USER "%s" WITH NOSUPERUSER;' % u
-                if VERBOSE:
-                    print " ", sql
-                        
-                curs.execute(sql)
-
             conn.commit()
             conn.close()
         except Exception, e:
@@ -144,8 +136,8 @@ class pgrestore:
             if self.schemas:
                 print "Restoring only schemas:", self.schemas
 
-        # always do this
-        self.create_schemas_and_users()
+            # now is a good time to create those schemas
+            self.create_schemas()
 
         # Single Transaction?
         st = ""
