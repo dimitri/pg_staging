@@ -215,8 +215,6 @@ class Staging:
                               self.schemas_nodata,
                               connect = False)
 
-        print "GET_CATALOG", self.schemas_nodata
-
         catalog = r.get_catalog(filename, self.get_nodata_tables())
         return catalog.getvalue()
 

@@ -121,34 +121,6 @@ class pgrestore:
         if not TERSE:
             print 'droped database "%s"' % self.dbname
 
-    def create_schemas(self):
-        """ Create the database needed schemas """
-        from options import VERBOSE, TERSE
-        if not TERSE:
-            print "Create Schemas %s" % ' '.join(self.schemas)
-
-        try:
-            dsn  = "dbname='%s' user='%s' host='%s' port=%d" \
-                          % (self.dbname, self.user, self.host, self.port)
-            conn = psycopg2.connect(dsn)
-            curs = conn.cursor()
-            
-            for s in self.schemas:
-                # public will have been created at createdb time
-                if s != 'public':
-
-                    sql = 'CREATE SCHEMA "%s" AUTHORIZATION "%s";'\
-                          % (s, self.owner)
-
-                    if VERBOSE:
-                        print " ", sql                        
-                    curs.execute(sql)
-
-            conn.commit()
-            conn.close()
-        except Exception, e:
-            raise
-
     def pg_restore(self, filename, excluding_tables = []):
         """ restore dump file to new database """
         from options import VERBOSE, TERSE
