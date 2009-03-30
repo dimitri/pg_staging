@@ -201,6 +201,7 @@ class Staging:
 
     def get_catalog(self, filename):
         """ get a cleaned out catalog (nodata tables are commented) """
+        self.dated_dbname = None
         r = restore.pgrestore(self.dated_dbname,
                               self.dbuser,
                               self.host,
@@ -210,10 +211,13 @@ class Staging:
                               self.postgres_major,
                               self.pg_restore,
                               self.pg_restore_st,
-                              self.schemas)
+                              self.schemas,
+                              connect = False)
+
+        print "GET_CATALOG", self.schemas
 
         catalog = r.get_catalog(filename, self.get_nodata_tables())
-        return catalog
+        return catalog.getvalue()
 
     def restore(self):
         """ launch a pg_restore for the current staging configuration """
