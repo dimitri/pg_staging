@@ -55,7 +55,8 @@ class Staging:
         self.use_sudo        = use_sudo    == "True"
         self.pg_restore      = pg_restore
         self.pg_restore_st   = pg_restore_st == "True"
-        self.schemas         = None
+        self.schemas         = []
+        self.schemas_nodata  = []
         self.replication     = None
 
         # init separately, we don't have the information when we create the
@@ -157,10 +158,7 @@ class Staging:
                               self.pgbouncer_port,
                               self.dbowner,
                               self.maintdb,
-                              self.postgres_major,
-                              self.pg_restore,
-                              self.pg_restore_st,
-                              self.schemas)
+                              self.postgres_major)
 
         # psql -f filename
         r.source_sql_file(filename)
@@ -212,9 +210,10 @@ class Staging:
                               self.pg_restore,
                               self.pg_restore_st,
                               self.schemas,
+                              self.schemas_nodata,
                               connect = False)
 
-        print "GET_CATALOG", self.schemas
+        print "GET_CATALOG", self.schemas_nodata
 
         catalog = r.get_catalog(filename, self.get_nodata_tables())
         return catalog.getvalue()
@@ -237,7 +236,8 @@ class Staging:
                               self.postgres_major,
                               self.pg_restore,
                               self.pg_restore_st,
-                              self.schemas)
+                              self.schemas,
+                              self.schemas_nodata)
 
         # while connected, try to create the database
         r.createdb()
@@ -301,7 +301,8 @@ class Staging:
                               self.postgres_major,
                               self.pg_restore,
                               self.pg_restore_st,
-                              self.schemas)
+                              self.schemas,
+                              self.schemas_nodata)
         r.createdb()
         self.pgbouncer_add_database()
 

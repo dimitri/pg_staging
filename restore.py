@@ -16,25 +16,27 @@ class pgrestore:
 
     def __init__(self, dbname, user, host, port, owner, maintdb, major,
                  restore_cmd = "/usr/bin/pg_restore", st = True,
-                 schemas = [],
+                 schemas = [], schemas_nodata = [],
                  connect = True):
         """ dump is a filename """
         from options import VERBOSE
 
-        self.dbname      = dbname
-        self.user        = user
-        self.host        = host
-        self.port        = int(port)
-        self.owner       = owner
-        self.maintdb     = maintdb
-        self.major       = major
-        self.restore_cmd = restore_cmd
-        self.st          = st
-        self.schemas     = schemas
+        self.dbname         = dbname
+        self.user           = user
+        self.host           = host
+        self.port           = int(port)
+        self.owner          = owner
+        self.maintdb        = maintdb
+        self.major          = major
+        self.restore_cmd    = restore_cmd
+        self.st             = st
+        self.schemas        = schemas
+        self.schemas_nodata = schemas_nodata
 
-        # schemas here are used to filter OUT what to restore (values not in
+        # schemas here are used to filter what to restore (values not in
         # self.schemas are filtered out)
-        self.schemas.append('pg_catalog')
+        if self.schemas:
+            self.schemas.append('pg_catalog')
 
         self.dsn    = "dbname='%s' user='%s' host='%s' port=%d" \
                       % (self.maintdb, self.user, self.host, self.port)
@@ -228,41 +230,45 @@ class pgrestore:
         if proc.returncode != 0:
             raise PGRestoreFailedException, err
 
-        # tables are schema.table, we want (schema, table)
-        splitted_tables = [(x.split('.')[0], x.split('.')[1]) for x in tables]
-        
         from cStringIO import StringIO
         catalog = StringIO()
 
         # out is a simple string, so we split on \n or read one char at a
         # time in the loop, which isn't what we want
+        #
+        # here's what the DATA lines we're after look like:
+        #
+        #3; 2615 122814 SCHEMA - pgq postgres
+        #6893; 0 0 ACL - pgq postgres
+        #3385; 1259 123008 TABLE londiste subscriber_table payment
+        #1206; 1247 123043 TYPE londiste ret_subscriber_table postgres
+        #1118; 1247 122925 TYPE pgq ret_batch_event postgres
+        #142; 1255 122813 FUNCTION public txid_visible_in_snapshot(bigint, txid_snapshot) postgres
+        #70; 1255 1487229 FUNCTION public upper(ip4r) postgres
+        #2526; 2617 1487283 OPERATOR public # postgres
+        #2524; 2617 1487281 OPERATOR public & postgres
+        #2647; 2616 1487309 OPERATOR CLASS public btree_ip4_ops postgres
+        #3961; 2605 1487223 CAST pg_catalog CAST (cidr AS public.ip4r)
+        #6662; 0 788811 TABLE DATA payment abocb_code payment
+        #6663; 0 788819 TABLE DATA payment abocb_renew payment
+        #6664; 0 788825 TABLE DATA payment acte_code payment
+        #3380; 1259 122980 SEQUENCE londiste provider_seq_nr_seq payment
+        #6904; 0 0 SEQUENCE OWNED BY londiste provider_seq_nr_seq payment
+        #6905; 0 0 SEQUENCE SET londiste provider_seq_nr_seq payment
+        #4301; 2604 122984 DEFAULT londiste nr payment
+        #4656; 1259 56340 INDEX archives ap_rev_2004 webadmin
+        #6236; 2620 15995620 TRIGGER jdb www_to_reporting_logger webadmin
+        #6014; 2606 56535 FK CONSTRAINT archives rev_2001_id_compte_fkey webadmin
+
+        # tables are schema.table, we want (schema, table)
+        splitted_tables = [(x.split('.')[0], x.split('.')[1]) for x in tables]
+
+        # for meta data (md_) commands, filter_out what's neither in schemas
+        # nor in schemas_nodata
+        md_schemas = self.schemas + self.schemas_nodata
+        
         for line in out.split('\n'):
-            match = False
-
-            # here's what the DATA lines we're after look like:
-            #
-            #3; 2615 122814 SCHEMA - pgq postgres
-            #6893; 0 0 ACL - pgq postgres
-            #3385; 1259 123008 TABLE londiste subscriber_table payment
-            #1206; 1247 123043 TYPE londiste ret_subscriber_table postgres
-            #1118; 1247 122925 TYPE pgq ret_batch_event postgres
-            #142; 1255 122813 FUNCTION public txid_visible_in_snapshot(bigint, txid_snapshot) postgres
-            #70; 1255 1487229 FUNCTION public upper(ip4r) postgres
-            #2526; 2617 1487283 OPERATOR public # postgres
-            #2524; 2617 1487281 OPERATOR public & postgres
-            #2647; 2616 1487309 OPERATOR CLASS public btree_ip4_ops postgres
-            #3961; 2605 1487223 CAST pg_catalog CAST (cidr AS public.ip4r)
-            #6662; 0 788811 TABLE DATA payment abocb_code payment
-            #6663; 0 788819 TABLE DATA payment abocb_renew payment
-            #6664; 0 788825 TABLE DATA payment acte_code payment
-            #3380; 1259 122980 SEQUENCE londiste provider_seq_nr_seq payment
-            #6904; 0 0 SEQUENCE OWNED BY londiste provider_seq_nr_seq payment
-            #6905; 0 0 SEQUENCE SET londiste provider_seq_nr_seq payment
-            #4301; 2604 122984 DEFAULT londiste nr payment
-            #4656; 1259 56340 INDEX archives ap_rev_2004 webadmin
-            #6236; 2620 15995620 TRIGGER jdb www_to_reporting_logger webadmin
-            #6014; 2606 56535 FK CONSTRAINT archives rev_2001_id_compte_fkey webadmin
-
+            filter_out = False
 
             if line.find('SCHEMA') > -1            \
                    or line.find('ACL') > -1        \
@@ -316,24 +322,31 @@ class pgrestore:
 
                     # filter out ACL lines for schemas we want to exclude
                     if a == 'ACL' and b == '-' and c in self.schemas:
-                        match = True
+                        filter_out = True
 
                     # check self.schemas (contains data we want to restore)
-                    if not match and schema not in self.schemas:
-                        match = True
+                    if not filter_out and schema not in md_schemas:
+                        filter_out = True
+
+                    # filter out TABLE DATA section for schemas_nodata
+                    if not filter_out \
+                           and a == 'TABLE' and b == 'DATA' \
+                           and schema in self.schemas_nodata:
+                        filter_out = True
 
                     # then tables
-                    if not match and b == 'DATA':
+                    if not filter_out and a == 'TABLE' and b == 'DATA':
                         for s, t in splitted_tables:
-                            if not match and schema == s and table == t:
-                                match = True
+                            if not filter_out and schema == s and table == t:
+                                filter_out = True
                                 
                 except ValueError, e:
-                    # unpack error, line do not match
+                    # unpack error, line won't match anything, don't filter
+                    # out
                     pass
 
-            # when line does match we turn it into a comment 
-            if match:
+            # filter_out means we turn it into a comment 
+            if filter_out:
                 catalog.write(';%s\n' % line)
             else:
                 catalog.write('%s\n' % line)
