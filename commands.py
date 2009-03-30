@@ -140,6 +140,17 @@ def restore_from_dump(conffile, args):
     staging = parse_config(conffile, args[1])
     staging.load(args[0])
 
+def fetch_dump(conffile, args):
+    """ <dbname> [date] """
+    usage = "fetch <dumpfile> <dbname>"
+
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
+
+    # now load configuration and fetch
+    staging = parse_config(conffile, dbname)
+    staging.set_backup_date(backup_date)
+    staging.get_dump()
+
 def list_databases(conffile, args):
     """ list configured databases """
     config = ConfigParser.SafeConfigParser()
@@ -314,6 +325,7 @@ exports = {
     "drop":      drop,
     "switch":    switch,
     "load":      restore_from_dump,
+    "fetch":     fetch_dump,
 
     # listing
     "databases": list_databases,

@@ -173,7 +173,9 @@ class Staging:
             raise UnknownBackupDateException
         
         filename = "%s.%s.dump" % (self.dbname, self.backup_date)
-        return self.wget(self.backup_host, filename)
+        return self.wget(self.backup_host,                            # host
+                         "%s/%s" % (self.backup_base_url, filename),  # url
+                         filename)                                    # out
 
     def do_remove_dump(self, filename):
         """ remove dump when self.remove_dump says so """
@@ -254,7 +256,7 @@ class Staging:
         try:
             if VERBOSE:
                 os.system("ls -l %s" % filename)
-            r.pg_restore(filename)
+            r.pg_restore(filename, self.get_nodata_tables())
 
             # only switch pgbouncer configuration to new database when there
             # was no restore error
@@ -310,7 +312,7 @@ class Staging:
         try:
             if VERBOSE:
                 os.system("ls -l %s" % filename)
-            r.pg_restore(filename)
+            r.pg_restore(filename, self.get_nodata_tables())
 
         except Exception, e:
             mesg  = "Error: couldn't pg_restore from '%s'" % (filename)

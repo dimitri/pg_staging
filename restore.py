@@ -33,11 +33,6 @@ class pgrestore:
         self.schemas        = schemas
         self.schemas_nodata = schemas_nodata
 
-        # schemas here are used to filter what to restore (values not in
-        # self.schemas are filtered out)
-        if self.schemas:
-            self.schemas.append('pg_catalog')
-
         self.dsn    = "dbname='%s' user='%s' host='%s' port=%d" \
                       % (self.maintdb, self.user, self.host, self.port)
         self.mconn  = None
@@ -154,7 +149,7 @@ class pgrestore:
         except Exception, e:
             raise
 
-    def pg_restore(self, filename):
+    def pg_restore(self, filename, excluding_tables = []):
         """ restore dump file to new database """
         from options import VERBOSE, TERSE
 
@@ -163,23 +158,19 @@ class pgrestore:
             if self.schemas:
                 print "Restoring only schemas:", self.schemas
 
-        # now is a good time to create those schemas
-        self.create_schemas()
-
         # Single Transaction?
         st = ""
         if self.st:
+            if VERBOSE:
+                print "Notice: pg_restore will work in a single transaction"
             st = "-1"
 
         # Exclude some schemas at restore time?
-        schemas = None
-        if self.schemas:
-            schemas = ' '.join(['-n "%s"' % x for x in self.schemas])
-
-        ## cmd = "%s %s -h %s -p %d -U %s -d %s %s %s" \
-        ##       % (pgr, st,
-        ##          self.host, self.port, self.owner, self.dbname,
-        ##          schemas, filename)
+        catalog = ""
+        if self.schemas or self.schemas_nodata:
+            catalog = "-L %s" % self.get_catalog(filename,
+                                                 excluding_tables,
+                                                 out_to_file = True)
 
         cmd = [self.restore_cmd,
                st,
@@ -187,7 +178,7 @@ class pgrestore:
                "-p %d" % self.port,
                "-U", self.owner,
                "-d", self.dbname,
-               schemas,
+               catalog,
                filename
                ]
         cmd = [x for x in cmd if x is not None and x != '']
@@ -214,7 +205,7 @@ class pgrestore:
             mesg = "pg_restore returned %d" % returncode
             raise PGRestoreFailedException, mesg
 
-    def get_catalog(self, filename, tables):
+    def get_catalog(self, filename, tables, out_to_file = False):
         """ return the backup catalog, pg_restore -l, commenting table data """
         from options import VERBOSE
 
@@ -266,6 +257,11 @@ class pgrestore:
         # for meta data (md_) commands, filter_out what's neither in schemas
         # nor in schemas_nodata
         md_schemas = self.schemas + self.schemas_nodata
+
+        # schemas here are used to filter what to restore (values not in
+        # self.schemas are filtered out)
+        if md_schemas:
+            md_schemas.append('pg_catalog')
         
         for line in out.split('\n'):
             filter_out = False
@@ -351,7 +347,22 @@ class pgrestore:
             else:
                 catalog.write('%s\n' % line)
 
-        return catalog
+        if not out_to_file:
+            return catalog
+
+        import tempfile
+        fd, realname = tempfile.mkstemp(prefix = '/tmp/staging.',
+                                        suffix = '.catalog')
+
+        if VERBOSE:
+            print "Dumping filtered catalog to '%s'" % realname
+        
+        temp = os.fdopen(fd, "wb")
+        temp.write(catalog.getvalue())
+        temp.close()
+
+        return realname
+        
 
     def dbsize(self):
         """ return pretty printed dbsize """
