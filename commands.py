@@ -132,13 +132,13 @@ def restore(conffile, args):
 
 def restore_from_dump(conffile, args):
     """ <dbname> <dumpfile> """
-    usage = "load <dumpfile> <dbname>"
+    usage = "load <dbname> <dumpfile>"
 
     if len(args) != 2:
-        raise WrongNumberOfArgumentsException, "load <dumpfile> <dbname>"
+        raise WrongNumberOfArgumentsException, "load <dbname> <dumpfile>"
     
-    staging = parse_config(conffile, args[1])
-    staging.load(args[0])
+    staging = parse_config(conffile, args[0])
+    staging.load(args[1])
 
 def fetch_dump(conffile, args):
     """ <dbname> [date] """
