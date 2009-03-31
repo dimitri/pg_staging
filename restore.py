@@ -335,6 +335,96 @@ class pgrestore:
 
         return realname
         
+    ##
+    # In the catalog, we have such TRIGGER lines:
+    #
+    # 6236; 2620 15995620 TRIGGER jdb www_to_reporting_logger webadmin
+    #
+    # The TRIGGER code could depend on a procedure hosted in a schema that
+    # we filter out. In this case, we want to also filter out the TRIGGER
+    # itself.
+    #
+    #CREATE TRIGGER www_to_reporting_logger
+    #AFTER INSERT OR DELETE OR UPDATE ON daily_journal
+    #FOR EACH ROW
+    #EXECUTE PROCEDURE pgq.logtriga('www_to_reporting', 'kkvvvvvvvvv', 'jdb.daily_journal');
+    #
+    # get_trigger_funcs will return a dict of
+    #  {'trigger_name': ['procedure']}
+
+    def get_trigger_funcs(self, filename):
+        """ return the backup catalog, pg_restore -l, commenting table data """
+        from options import VERBOSE
+
+        cmd = [self.restore_cmd, "-s", filename]
+
+        import subprocess
+        proc = subprocess.Popen(cmd,
+                                stdout = subprocess.PIPE,
+                                stderr = subprocess.PIPE)
+
+        out, err = proc.communicate()
+
+        if proc.returncode != 0:
+            raise PGRestoreFailedException, err
+
+        # expressions we're searching
+        set_search_path     = 'SET search_path = '
+        set_search_path_l   = len(set_search_path)
+        create_trigger      = 'CREATE TRIGGER'
+        create_trigger_l    = len(create_trigger)
+        execute_procedure   = 'EXECUTE PROCEDURE'
+        execute_procedure_l = len(execute_procedure)
+        returns_trigger     = 'RETURNS "trigger"'
+
+        # parsing state and results
+        triggers        = {}
+        triggers_funcs  = {} # {func: schema} cache
+        current_schema  = 'public'
+        current_trigger = None
+
+        for line in out.split('\n'):
+            if line.find(set_search_path) > -1:
+                current_schema = line[set_search_path_l:-1].split(', ')[0]
+
+                if current_schema not in triggers:
+                    triggers[current_schema] = {}
+
+                # no need to search for CREATE TRIGGER here
+                continue
+
+            if line.find(create_trigger) > -1:
+                current_trigger = line[create_trigger_l:].strip()
+
+                if current_trigger not in triggers[current_schema]:
+                    # add an empty procedures list
+                    triggers[current_schema][current_trigger] = []
+                
+                continue
+
+            if line.find(returns_trigger) > -1:
+                # CREATE FUNCTION partition_board_log() RETURNS "trigger"
+                pname = line.split()[2].strip('()')
+                triggers_funcs[pname] = current_schema
+
+            if current_trigger:
+                start = line.find(execute_procedure)
+
+                if start > -1:
+                    start = start + execute_procedure_l
+                    pname = line[start:line.find('(', start)].strip()
+
+                    if pname.find('.') == -1:
+                        # procedure name is NOT schema qualified
+                        pname = '%s.%s' % (triggers_funcs[pname], pname)
+
+                    if pname not in triggers[current_schema][current_trigger]:
+                        triggers[current_schema][current_trigger].append(pname)
+                
+                if line.find(';') > -1:
+                    current_trigger = None
+
+        return triggers
 
     def dbsize(self):
         """ return pretty printed dbsize """

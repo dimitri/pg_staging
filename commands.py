@@ -280,6 +280,32 @@ def catalog(conffile, args):
 
     print staging.get_catalog(filename)
 
+def triggers(conffile, args):
+    """ <dbname> [dump] print triggers procedures for dbname """
+    # experimental devel facility, not too much error handling
+    usage = "triggers <dbname> [dump]"
+
+    dbname   = args[0]
+    filename = None
+    staging = parse_config(conffile, dbname)
+
+    if len(args) > 1:
+        filename = args[1]
+
+    import os.path
+    if filename is None or not os.path.exists(filename):
+        staging.set_backup_date(None)
+        filename = staging.get_dump()
+        print filename
+
+    triggers = staging.get_triggers(filename)
+
+    print "%15s %-25s %s" % ('SCHEMA', 'TRIGGER', 'FUNCTION')
+    for s in triggers:
+        for t in triggers[s]:
+            for f in triggers[s][t]:
+                print "%15s %-25s %s" % (s, t, f)
+
 def get_config_option(conffile, args):
     """ <dbname> <option> print the current value of [dbname] option """
     if len(args) != 2:
@@ -339,5 +365,6 @@ exports = {
 
     # experimental commands used to add features
     "nodata":    list_nodata_tables,
-    "catalog":   catalog
+    "catalog":   catalog,
+    "triggers":  triggers
     }

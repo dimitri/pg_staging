@@ -166,11 +166,11 @@ class Console(cmd.Cmd):
             print "Error: no config file"
 
     def do_fetch(self, args):
-        """ fetch database backup file (.dump) """
+        """ fetch <dbname> [date] """
         if self.conffile:
             if args != "":
                 try:
-                    commands.show_dbsize(self.conffile, args.split(' '))
+                    commands.fetch_dump(self.conffile, args.split(' '))
                 except Exception, e:
                     print e
             else:

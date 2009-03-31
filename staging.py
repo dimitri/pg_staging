@@ -199,6 +199,22 @@ class Staging:
                         tables = tables.union(p)
         return tables
 
+    def get_triggers(self, filename):
+        """ get a list of triggers with the functions attached to them """
+        self.dated_dbname = None
+        r = restore.pgrestore(self.dated_dbname,
+                              self.dbuser,
+                              self.host,
+                              self.postgres_port,
+                              self.dbowner,
+                              self.maintdb,
+                              self.postgres_major,
+                              self.pg_restore,
+                              self.pg_restore_st,
+                              connect = False)
+
+        return r.get_trigger_funcs(filename)
+
     def get_catalog(self, filename):
         """ get a cleaned out catalog (nodata tables are commented) """
         self.dated_dbname = None
