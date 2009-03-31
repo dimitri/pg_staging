@@ -234,6 +234,9 @@ class pgrestore:
         # self.schemas are filtered out)
         if md_schemas:
             md_schemas.append('pg_catalog')
+
+        # which triggers calls which function (schema qualified) cache
+        triggers = self.get_trigger_funcs(filename)
         
         for line in out.split('\n'):
             filter_out = False
@@ -284,7 +287,7 @@ class pgrestore:
 
                     elif a == 'FK' and b == 'CONSTRAINT':
                         schema = c
-                        
+
                     else:
                         schema = b
 
@@ -296,6 +299,17 @@ class pgrestore:
                     if not filter_out and schema not in md_schemas:
                         filter_out = True
 
+                    # check TRIGGER function dependancy
+                    if not filter_out and a == 'TRIGGER':
+                        # triggers[schema][trigger_name] = [f1, f2, f3]
+                        if b in triggers and c in triggers[b]:
+                            for f in triggers[b][c]:
+                                s = f.split('.')[0]
+
+                                if s not in self.schemas:
+                                    filter_out = True
+                                    break
+                                
                     # filter out TABLE DATA section for schemas_nodata
                     if not filter_out \
                            and a == 'TABLE' and b == 'DATA' \
