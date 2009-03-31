@@ -190,7 +190,7 @@ class Console(cmd.Cmd):
             print "Error: no config file"
 
     def do_load(self, args):
-        """ load <dumpfile> <dbname> """
+        """ load <dbname> <dumpfile> """
         if self.conffile:
             try:
                 commands.restore_from_dump(self.conffile, args.split(" "))
