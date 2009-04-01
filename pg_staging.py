@@ -114,7 +114,7 @@ if __name__ == '__main__':
         conffile, command, args = parse_options()
     except NoArgsCommandLineException, conffile:
         # no args given, console mode
-        from console import Console
+        from pgstaging.console import Console
         c = Console()
         # ok I need to read docs about exceptions
         c.set_config(str(conffile), recheck = False)

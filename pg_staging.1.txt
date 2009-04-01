@@ -1,0 +1,199 @@
+= pg_staging(1) =
+
+
+== NAME ==
+
+pg_staging - Prepare a staging environment from http accessible backups
+
+== SYNOPSIS ==
+
+pg_staging [--version] [-c configuration file]
+	   [-t tmpdir] [-d debug] [-v verbose] [-q quiet]
+	   <command> <dbname> [<date>]
+
+== DESCRIPTION ==
+
++pg_staging+ is a tool to prepare and maintain a staging environment from
+http accessible backups. Its main job (see command +restore+) is to:
+
+ 1. create target database, named +dbname_YYYYMMDD+
+
+ 2. add this database to the +pgbouncer+ setup, reload +pgbouncer+
+
+ 3. fetch a backup file named +dbname.`date -I`.dump+
+
+ 4. prepare a filtered catalog for the given dump, depending on
+    configuration
+
+ 5. +pg_restore+ the backup with the custom catalog to the created database
+
+ 6. switch +pgbouncer+ entry for +dbname+ to target +dbname_YYYYMMDD+ and
+    reload +pgbouncer+ again.
+
++pg_staging+ is able to do some more, mainly the commands given allow to
+give fine grain control over what it does rather than only providing the
+full +restore+ option.
+
+== DEPENDENCIES ==
+
++pg_staging+ will use the following external tools:
+
+* +pgbouncer+ in order to maintain more than one staging database
+* +pg_restore+ which major version must match target database cluster
+* +scp+ to upload new +pgbouncer.ini+ configuration files
+* +ssh+ to run the +staging-client.sh+ on the target host
+
+See next section for how to prepare those components.
+
+== INITIAL SETUP ==
+
+In order for pg_staging to be able to manage any target you give it, the
+following conditions have to be met:
+
+ 1. install +staging-client.sh+ on the target host
++
+Currently you have to +ssh+ non interactively (setup a password free ssh key
+authentication) to the target host. +pg_staging+ will run the following
+command:
++
+  ssh <host> sudo ./staging-client.sh <pgbouncer.xxxx.ini> <pgbouncer_port>
++
+
+ 2. install and open pgbouncer "trust" connection as maintenance user
+    (+dbuser+) on the maintenance database (+maintdb+). 
++
+This connection will get used to +CREATE DATABASE+ and +DROP DATABASE+.
+
+== COMMANDS ==
+
+commands::
+
+	This will show available commands and a docstring for each.
+
+=== main operation ===
+
+init <dbname>::
+
+	Prepare a cluster given a +pg_dumpall -g+ file, see option
+	+dumpall_url+.
+
+restore <dbname> [<YYYYMMDD]>::
+
+	See +description+ section, it explains the details. It may be of
+	importance to recall that +restore+ will clean up its temporary
+	files, including the dump file itself. The clean up happens in case
+	of success and in case of error.
+
+drop <dbname> [<YYYYMMDD]>::
+
+	+DROP DATABASE+ the given database, or today's one if none given. It
+	won't edit +pgbouncer+ configuration accordingly though, as of
+	version +0.5+.
+
+switch <dbname> [<YYYYMMDD]>::
+
+	Change the canonical <dbname> entry in +pgbouncer+ to point to given
+	dated instance, default to today's one.
+
+load <dbname> <filename>::
+
+	+pg_restore+ given dump file, this allow to skip the auto
+	downloading part of the +restore+ command.
+
+fetch <dbname> [<YYYYMMDD]>::
+
+	Only fetch the dump, do not restore it, do not remove it afterwards.
+
+===  listings ===
+
+databases::
+
+	Show the list of database sections parsed into the .ini file.
+
+backups <dbname> [<YYYYMMDD]>::
+	
+	Show <dbname> available backups on the http host.
+
+dbsize <dbname> [<YYYMMDD>]::
+
+        Show database size of given instance, as returned by +SELECT
+        pg_size_pretty(pg_database_size('dbname_YYYYMMDD'));+
+
+=== pgbouncer ===
+
+pgbouncer <dbname>::
+
+	 Show +pgbouncer+ database listing for given dbname.
+
+pause <dbname> [<YYYMMDD>]::
+
+	 Issue a +pgbouncer+ +pause <dbname>+ command.
+
+resume <dbname> [<YYYMMDD>]::
+
+	 Issue a +pgbouncer+ +resume <dbname>+ command.
+
+=== experimental ===
+
+nodata::
+
+	 Show tables we want to skip loading DATA for, those we are a
+	 subscriber of.
+
+catalog::
+
+	 Show the filtered out catalog we'll give to +pg_restore -L+.
+
+triggers::
+
+	 Show the schema-qualified functions used by triggers, in order to
+	 be able to follow dependancies when filtering out a schema
+	 definition (such as +pgq+ or +londiste+).
+
+== OPTIONS ==
+
+  Usage: pg_staging.py [-c <config_filename>] command dbname <args>
+  
+  Options:
+    -h, --help            show this help message and exit
+    --version             show pg_staging version
+    -c CONFIG, --config=CONFIG
+                          configuration file, defauts to /etc/hm-
+                          tools/pg_staging.ini
+    -n, --dry-run         simulate operations, don't do them
+    -v, --verbose         be verbose and about processing progress
+    -q, --quiet           be terse, almost silent
+    -d, --debug           provide python stacktrace when error
+    -t TMPDIR, --tmpdir=TMPDIR
+                          temp dir where to fetch dumps, /tmp
+
+== CONSOLE ==
+
+If you start +pg_staging+ without command, it will open up an interactive
+console with basic readline support. All previous commands are supported,
+except for the experimental ones, and the following are added.
+
+config <filename>::
+
+    read given filename as the current configuration file for +pg_staging+.
+
+set <section> <option> <value>::
+
+    set given option to given value for current interactive session only.
+
+get <section> <option>::
+
+    print current value of given option.
+
+verbose::
+
+    switch +on+ and +off+ the verbosity of +pg_staging+.
+
+== INTERNALS ==
+
+How we use tools. Will get expanded if questions arise.
+
+== SEE ALSO ==
+
+`pg_staging(5)`
+

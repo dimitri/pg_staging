@@ -1,0 +1,31 @@
+= londiste(5) =
+
+== NAME ==
+
+pg_staging - Prepare a staging environment from http accessible backups
+
+== SYNOPSIS ==
+
+[GLOBAL]
+
+[database_name.env]
+
+== DESCRIPTION == 
+
+Configuration file is a +.ini+ containing several sections: first a GLOBAL
+section containing common options to the following sections, then a section
+per target database.
+
+== OPTIONS ==
+
+
+
+== EXAMPLE ==
+
+  [GLOBAL]
+
+  [database.env]
+
+== SEE ALSO ==
+
+`pg_staging(1)`
