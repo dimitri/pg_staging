@@ -1,4 +1,4 @@
-= londiste(5) =
+= pg_staging(5) =
 
 == NAME ==
 

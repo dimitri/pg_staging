@@ -117,7 +117,7 @@ backups <dbname> [<YYYYMMDD]>::
 dbsize <dbname> [<YYYMMDD>]::
 
         Show database size of given instance, as returned by +SELECT
-        pg_size_pretty(pg_database_size('dbname_YYYYMMDD'));+
+        pg_size_pretty(pg_database_size(dbname_YYYYMMDD));+
 
 === pgbouncer ===
 
