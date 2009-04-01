@@ -2,11 +2,13 @@
 ## pg_staging.py common options
 ##
 
-VERSION = 0.4
+VERSION = 0.5
 
 VERBOSE = False
 TERSE   = False
+DEBUG   = False
 DRY_RUN = False
+
 TMPDIR  = '/tmp'
 BUFSIZE = 8 * 1024 * 1024
 DEFAULT_CONFIG_FILE = "/etc/hm-tools/pg_staging.ini"

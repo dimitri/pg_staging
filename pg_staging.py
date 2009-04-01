@@ -5,17 +5,17 @@
 import os, os.path, sys
 from optparse import OptionParser
 
-import options
-from options import NotYetImplementedException
-from options import CouldNotGetDumpException
-from options import CouldNotConnectPostgreSQLException
-from options import WrongNumberOfArgumentsException
-from options import UnknownBackupDateException
-from options import NoArgsCommandLineException
+import pgstaging.options
+from pgstaging.options import NotYetImplementedException
+from pgstaging.options import CouldNotGetDumpException
+from pgstaging.options import CouldNotConnectPostgreSQLException
+from pgstaging.options import WrongNumberOfArgumentsException
+from pgstaging.options import UnknownBackupDateException
+from pgstaging.options import NoArgsCommandLineException
 
-from staging import Staging
+from pgstaging.staging import Staging
 
-import commands
+import pgstaging.commands as commands
 
 def parse_options():
     """ get the command to run from command line """
@@ -23,10 +23,15 @@ def parse_options():
     usage  = "%prog [-c <config_filename>] command dbname <args>"
     parser = OptionParser(usage = usage)
     
+    parser.add_option("--version", action = "store_true",
+                      dest    = "version",
+                      default = False,
+                      help    = "show pg_staging version")
+
     parser.add_option("-c", "--config", dest = "config",
-                      default = options.DEFAULT_CONFIG_FILE,
+                      default = pgstaging.options.DEFAULT_CONFIG_FILE,
                       help    = "configuration file, defauts to %s" \
-                      % options.DEFAULT_CONFIG_FILE)
+                      % pgstaging.options.DEFAULT_CONFIG_FILE)
 
     parser.add_option("-n", "--dry-run", action = "store_true",
                       dest    = "dry_run",
@@ -43,31 +48,42 @@ def parse_options():
                       default = False,
                       help    = "be terse, almost silent")
 
-    parser.add_option("-d", "--tmpdir", dest = "tmpdir",
-                      default = options.TMPDIR,
+    parser.add_option("-d", "--debug", action = "store_true",
+                      dest    = "debug",
+                      default = False,
+                      help    = "provide python stacktrace when error")
+
+    parser.add_option("-t", "--tmpdir", dest = "tmpdir",
+                      default = pgstaging.options.TMPDIR,
                       help    = "temp dir where to fetch dumps, %s" \
-                      % options.TMPDIR)
+                      % pgstaging.options.TMPDIR)
 
     (opts, args) = parser.parse_args()
 
-    options.TERSE   = opts.terse
-    options.VERBOSE = opts.verbose
-    options.DRY_RUN = opts.dry_run
-    options.TMPDIR  = opts.tmpdir
+    if opts.version:
+        from pgstaging.options import VERSION
+        print "pg_staging %s" % VERSION
+        sys.exit(0)
 
-    if options.TERSE and options.VERBOSE:
+    pgstaging.options.DEBUG   = opts.debug
+    pgstaging.options.TERSE   = opts.terse
+    pgstaging.options.VERBOSE = opts.verbose
+    pgstaging.options.DRY_RUN = opts.dry_run
+    pgstaging.options.TMPDIR  = opts.tmpdir
+
+    if pgstaging.options.TERSE and pgstaging.options.VERBOSE:
         print >>sys.stderr, "Error: can't be verbose and terse"
         sys.exit(1)
 
-    if options.DRY_RUN:
+    if pgstaging.options.DRY_RUN:
         print >>sys.stderr, "Error: dry run is not yet implemented"
         sys.exit(1)
 
-    if options.VERBOSE:
+    if pgstaging.options.VERBOSE:
         print "We'll be verbose!"
 
     # check existence and read ability of config file
-    if options.VERBOSE:
+    if pgstaging.options.VERBOSE:
         print "Checking if config file '%s' exists" % opts.config
 
     if not os.path.exists(opts.config):
@@ -75,7 +91,7 @@ def parse_options():
               "Error: Configuration file %s does not exists" % opts.config
         sys.exit(1)
 
-    if options.VERBOSE:
+    if pgstaging.options.VERBOSE:
         print "Checking if config file '%s' is readable" % opts.config
 
     if not os.access(opts.config, os.R_OK):
@@ -85,7 +101,7 @@ def parse_options():
         sys.exit(1)
 
     if len(args) == 0:
-        if options.VERBOSE:
+        if pgstaging.options.VERBOSE:
             print "No arguments, want console?"
         raise NoArgsCommandLineException, opts.config        
 
@@ -108,7 +124,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # only load staging module after options are set
-    from options import VERBOSE, DRY_RUN
+    from pgstaging.options import VERBOSE, DRY_RUN, DEBUG
 
     # and act accordinly
     if command not in commands.exports:
@@ -119,7 +135,9 @@ if __name__ == '__main__':
         commands.exports[command](conffile, args)
     except Exception, e:
         print >>sys.stderr, e
-        #raise
+
+        if DEBUG:
+            raise
         sys.exit(1)
 
     sys.exit(0)
