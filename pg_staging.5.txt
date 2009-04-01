@@ -6,9 +6,8 @@ pg_staging - Prepare a staging environment from http accessible backups
 
 == SYNOPSIS ==
 
-[GLOBAL]
-
-[database_name.env]
+       [GLOBAL]
+       [database_name.env]
 
 == DESCRIPTION == 
 
