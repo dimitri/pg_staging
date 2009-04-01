@@ -173,7 +173,7 @@ class pgrestore:
         if VERBOSE:
             print "pg_restore return:", returncode
 
-        if returncode != 0:
+        if returncode is not None and returncode != 0:
             mesg = "pg_restore returned %d" % returncode
             raise PGRestoreFailedException, mesg
 

@@ -53,7 +53,7 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
             staging = Staging(dbname, # section
                               get_option(config, dbname, "backup_host"),
                               get_option(config, dbname, "backup_base_url"),
-                              get_option(config, dbname, "dumpall_url"),
+                              get_option(config, dbname, "dumpall_url", True),
                               get_option(config, dbname, "host"),
                               get_option(config, dbname, "dbname"),
                               get_option(config, dbname, "dbuser"),
