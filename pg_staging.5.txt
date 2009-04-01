@@ -16,15 +16,142 @@ Configuration file is a +.ini+ containing several sections: first a GLOBAL
 section containing common options to the following sections, then a section
 per target database.
 
+== SECTIONS ==
+
+The +[DEFAULT]+ section allows to provide default values for any setting
+describe here, that you can override in any of the specific sections.
+
+Each specific section represent a target database to restore. The options
+will allow to say from which backup and on which host. The +host+ knob is
+used in commands such as +pg_restore+, +scp+ and +ssh+, so can be either an
++ip+ address or a +hostname+ (+resolv.conf+ applies).
+
 == OPTIONS ==
 
+backup_host::
 
+	Which host to connect to to fetch the backup file. +HTTP+ only.
+
+backup_base_url::
+
+	Path leading to the backup for the section's database. The database
+	dump file will get expanded to +dbname.`date -I`.dump+, this is not
+	(yet?) configurable as of version +0.5+.
+
+dumpall_url::
+
+	Path to the cluster +pg_dumpall -g+ accompanying file,
+	e.g. +8.2-main.globals.sql+.
+
+host::
+
+	Target where to restore the dump file and manage +pgbouncer+ setup.
+
+dbname::
+
+	Database name, will get appended by the backup date to form a
+	+dbname_YYYYMMDD+ name.
+
+dbowner::
+
+	Owner of the database to get restored.
+
+dbuser::
+
+	Maintenance database role used in the connections to create or drop
+	databases.
+
+maintdb::
+
+	Maintenance database to connect to, usually +postgres+.
+
+postgres_port::
+
+	PostgreSQL port to use in +pgbouncer+ configuration file.
+
+postgres_major::
+
+	Major version of +postgresql+, allows to choose the +pg_restore+
+	binary with the default settings.
+
+pgbouncer_port::
+
+	+pgbouncer+ port to connect to, used for all +pg_staging+
+	operations.
+
+pgbouncer_conf::
+
+	Configuration file name for +pgbouncer+, e.g.
+	+/etc/pgbouncer/pgbouncer.ini/
+
+remove_dump::
+
+	boolean (+True+ or +False+) to control if +pg_staging+ removes the
+	dump file after restore.
+
+keep_bases::
+
+	How many databases to keep arround, +pg_staging+ drops less recent
+	databases. Not Yet Implemented as of +0.5+.
+
+auto_switch::
+
+	boolean to control if +pg_staging+ switches +pgbouncer+
+	configuration at restore time
+
+use_sudo::
+
+	boolean, used when invoking +staging-client.sh+
+
+pg_restore::
+
+	/usr/lib/postgresql/%(postgres_major)s/bin/pg_restore
+
+pg_restore_st::
+
+	boolean, use +--single-statement+ option (+-1+) in +pg_restore+.
+
+replication::
+
+	configuration filename where to setup the replication options.
+
+schemas::
+
+	List of schema to restore. If present, any schema not listed here
+	nor in +schemas_nodata+ will get filtered out from the +pg_restore+
+	catalog.
+
+schemas_nodata::
+
+	List of schema to restore without content. The +pg_restore+ catalog
+	+TABLE DATA+ sections will get filtered out.
 
 == EXAMPLE ==
 
-  [GLOBAL]
+  [DEFAULT]
+   backup_host     = backup1.backbone
+   dbuser          = postgres
+   maintdb         = postgres
+   postgres_port   = 5432
+   postgres_major  = 8.3
+   pgbouncer_port  = 6432
+   pgbouncer_conf  = /etc/pgbouncer/pgbouncer.ini
+   remove_dump     = True
+   keep_bases      = 2
+   auto_switch     = True
+   use_sudo        = True
+   pg_restore      = /usr/lib/postgresql/%(postgres_major)s/bin/pg_restore
+   pg_restore_st   = True
+   replication     = replication.ini
 
-  [database.env]
+  [allopass_db.dev]
+   backup_base_url = /PostgreSQL/allopass_db/nightly/
+   dumpall_url     = /PostgreSQL/clusters/bdd.allopass/8.2-main.globals.sql
+   host            = bdd.allopass.dev
+   postgres_major  = 8.2
+   dbname          = allopass_db
+   dbowner         = root
+   schemas         = public, payment, utils, jdb
 
 == SEE ALSO ==
 
