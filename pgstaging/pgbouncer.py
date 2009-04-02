@@ -115,6 +115,20 @@ class pgbouncer:
         if write:
             return self.write(conf)
 
+    def del_database(self, dbname, conf = None, write = True):
+        """ edit config to delete a dbname from it """
+
+        if conf is None:
+            conf = self.parse_config()
+
+        if dbname not in conf.options('databases'):
+            raise Exception, "unable to find '%s' in pgbouncer" % dbname
+
+        conf.remove_option('databases', dbname)
+
+        if write:
+            return self.write(conf)
+
     def switch_to_database(self, dbname, real_dbname, pgport):
         """ edit config file to have dbname point to real_dbname, and return
         the temporary filename containing the new config"""

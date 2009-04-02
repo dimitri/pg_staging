@@ -162,11 +162,24 @@ class Staging:
                               self.maintdb,
                               self.postgres_major)
 
+        # if necessary, add a new postgres database to pgbouncer setup just
+        # to be able to replay the globals dumpall file, which will \connect
+        # postgres
+        #
+        # this is needed in case of multi cluster support with a single
+        # pgbouncer instance.
+        if self.maintdb != 'postgres':
+            self.pgbouncer_add_database('postgres')
+
         # psql -f filename
         r.source_sql_file(filename)
 
         # don't forget to clean up the mess
         os.unlink(filename)
+
+        if self.maintdb != 'postgres':
+            self.pgbouncer_del_database('postgres')
+        
         return    
 
     def get_dump(self):
@@ -350,7 +363,22 @@ class Staging:
 
         self.pgbouncer_update_conf(newconffile)
 
-    def pgbouncer_add_database(self):
+    def pgbouncer_add_database(self, dbname = None):
+        """ edit pgbouncer configuration file to add a database """
+
+        p = pgbouncer.pgbouncer(self.pgbouncer_conf,
+                                self.dbuser,
+                                self.host,
+                                self.postgres_port)
+
+        if dbname is None:
+            dbname = self.dated_dbname
+
+        newconffile = p.add_database(dbname, self.postgres_port)
+
+        self.pgbouncer_update_conf(newconffile)
+
+    def pgbouncer_del_database(self, dbname):
         """ edit pgbouncer configuration file to add a database """
         
         p = pgbouncer.pgbouncer(self.pgbouncer_conf,
@@ -358,8 +386,7 @@ class Staging:
                                 self.host,
                                 self.postgres_port)
 
-        newconffile = p.add_database(self.dated_dbname,
-                                     self.postgres_port)
+        newconffile = p.del_database(dbname)
 
         self.pgbouncer_update_conf(newconffile)
 
@@ -429,6 +456,9 @@ class Staging:
 
         # resume it
         self.pgbouncer_resume(self.dated_dbname)
+
+        # and remove it from pgbouncer configuration
+        self.pgbouncer_del_database(self.dated_dbname)
         
     def dbsize(self):
         """ return database size, pretty printed """
