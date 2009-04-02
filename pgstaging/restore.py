@@ -15,7 +15,7 @@ class pgrestore:
     remote database, which we have to create first """
 
     def __init__(self, dbname, user, host, port, owner, maintdb, major,
-                 restore_cmd = "/usr/bin/pg_restore", st = True,
+                 restore_cmd = "/usr/bin/pg_restore", st = False,
                  schemas = [], schemas_nodata = [],
                  connect = True):
         """ dump is a filename """
