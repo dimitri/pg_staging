@@ -64,6 +64,12 @@ maintdb::
 
 	Maintenance database to connect to, usually +postgres+.
 
+db_encoding::
+
+	Database encoding to use in the following statement:
++
+  CREATE DATABASE ... WITH OWNER "..." ENCODING '...';
+
 postgres_port::
 
 	PostgreSQL port to use in +pgbouncer+ configuration file.

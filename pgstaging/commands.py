@@ -59,6 +59,7 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
                               get_option(config, dbname, "dbuser"),
                               get_option(config, dbname, "dbowner"),
                               get_option(config, dbname, "maintdb"),
+                              get_option(config, dbname, "db_encoding"),
                               get_option(config, dbname, "postgres_port"),
                               get_option(config, dbname, "postgres_major"),
                               get_option(config, dbname, "pgbouncer_port"),

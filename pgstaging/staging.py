@@ -24,6 +24,7 @@ class Staging:
                  dbuser,
                  dbowner,
                  maintdb,
+                 db_encoding,
                  postgres_port,
                  postgres_major,
                  pgbouncer_port,
@@ -45,6 +46,7 @@ class Staging:
         self.dbuser          = dbuser
         self.dbowner         = dbowner
         self.maintdb         = maintdb
+        self.db_encoding     = db_encoding
         self.postgres_port   = int(postgres_port)
         self.postgres_major  = postgres_major
         self.pgbouncer_port  = int(pgbouncer_port)
@@ -256,7 +258,7 @@ class Staging:
                               self.schemas_nodata)
 
         # while connected, try to create the database
-        r.createdb()
+        r.createdb(self.db_encoding)
 
         # add the new database to pgbouncer configuration now
         # it could be that the restore will be connected to pgbouncer
@@ -319,7 +321,7 @@ class Staging:
                               self.pg_restore_st,
                               self.schemas,
                               self.schemas_nodata)
-        r.createdb()
+        r.createdb(self.db_encoding)
         self.pgbouncer_add_database()
 
         # now restore the dump

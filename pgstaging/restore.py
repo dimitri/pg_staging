@@ -80,27 +80,29 @@ class pgrestore:
         returncode = out.close()
         return returncode
 
-    def createdb(self):
+    def createdb(self, encoding):
         """ connect to remote PostgreSQL server to create the new database"""
         from options import VERBOSE, TERSE
         
         if VERBOSE:
-            print "createdb -O %s %s" % (self.owner, self.dbname)
+            print "createdb -O %s -E %s %s" % (self.owner,
+                                               encoding, self.dbname)
 
         try:
             # create database can't run from within a transaction
             self.mconn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             curs = self.mconn.cursor()
-            curs.execute('CREATE DATABASE "%s" WITH OWNER "%s"' \
-                         % (self.dbname, self.owner))
+            curs.execute('CREATE DATABASE "%s" ' % self.dbname + \
+                         'WITH OWNER "%s" ENCODING \'%s\'' % (self.owner,
+                                                              encoding))
             curs.close()
         except Exception, e:
             mesg = 'Error: createdb: %s' % e
             raise CreatedbFailedException, mesg
 
         if not TERSE:
-            print "created database '%s' owned by '%s'" % (self.dbname,
-                                                           self.owner)
+            print "created database '%s' owned by '%s', encoded in %s" \
+                  % (self.dbname, self.owner, encoding)
 
     def dropdb(self):
         """ connect to remote PostgreSQL server to drop database"""
