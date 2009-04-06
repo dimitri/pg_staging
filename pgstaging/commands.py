@@ -111,6 +111,22 @@ def parse_args_for_dbname_and_date(args, usage):
 
     return dbname, date
 
+def duration_pprint(duration):
+    """ pretty print duration (human readable information) """
+    if duration > 3600:
+        h  = int(duration / 3600)
+        m  = int((duration - 3600 * h) / 60)
+        s  = duration - 3600 * h - 60 * m + 0.5
+        return '%2dh%02dm%03.1f' % (h, m, s)
+    
+    elif duration > 60:
+        m  = int(duration / 60)
+        s  = duration - 60 * m
+        return ' %02dm%06.3f' % (m, s)
+        
+    else:
+        return '%10.3f' % duration
+
 def init_cluster(conffile, args):
     """ <dbname> """
     usage = "init <dbname>"
@@ -129,7 +145,9 @@ def restore(conffile, args):
     # now load configuration and restore
     staging = parse_config(conffile, dbname)
     staging.set_backup_date(backup_date)
-    staging.restore()
+    secs = staging.restore()
+
+    print "restore time:", duration_pprint(secs)
 
 def restore_from_dump(conffile, args):
     """ <dbname> <dumpfile> """
@@ -139,7 +157,9 @@ def restore_from_dump(conffile, args):
         raise WrongNumberOfArgumentsException, "load <dbname> <dumpfile>"
     
     staging = parse_config(conffile, args[0])
-    staging.load(args[1])
+    secs = staging.load(args[1])
+
+    print "load time:", duration_pprint(secs)
 
 def fetch_dump(conffile, args):
     """ <dbname> [date] """

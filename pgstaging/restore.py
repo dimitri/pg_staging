@@ -160,6 +160,10 @@ class pgrestore:
         if not TERSE:
             print " ".join(cmd)
 
+        # mesure pg_restore timing
+        import time
+        start_time = time.time()
+
         ## for some reason subprocess.Popen() is unable to see pg_restore
         ## stderr and return code
         ##
@@ -172,12 +176,17 @@ class pgrestore:
 
         returncode = out.close()
 
+        end_time = time.time()
+
         if VERBOSE:
             print "pg_restore return:", returncode
 
         if returncode is not None and returncode != 0:
             mesg = "pg_restore returned %d" % returncode
             raise PGRestoreFailedException, mesg
+
+        # time elapsed, in secs
+        return end_time - start_time
 
     def get_catalog(self, filename, tables, out_to_file = False):
         """ return the backup catalog, pg_restore -l, commenting table data """
@@ -344,9 +353,6 @@ class pgrestore:
         fd, realname = tempfile.mkstemp(prefix = '/tmp/staging.',
                                         suffix = '.catalog')
 
-        if VERBOSE:
-            print "Dumping filtered catalog to '%s'" % realname
-        
         temp = os.fdopen(fd, "wb")
         temp.write(catalog.getvalue())
         temp.close()

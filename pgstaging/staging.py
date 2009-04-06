@@ -2,7 +2,7 @@
 ## Staging Class to organise processing
 ##
 
-import os, httplib
+import os, httplib, time
 
 from options import NotYetImplementedException
 from options import CouldNotGetDumpException
@@ -36,6 +36,8 @@ class Staging:
                  pg_restore    = "/usr/bin/pg_restore",
                  pg_restore_st = True):
         """ Create a new staging object, configured """
+
+        self.creation_time   = time.time()
 
         self.section         = section
         self.dbname          = dbname
@@ -87,6 +89,10 @@ class Staging:
         if VERBOSE:
             print "backup filename is '%s'" % self.backup_filename
             print "target database backup date is '%s'" % self.dated_dbname
+
+    def timing(self):
+        """ return time elapsed since staging object creation """
+        return time.time() - self.creation_time
 
     def list_backups(self):
         """ return a list of available backup files for self.dbname """
@@ -342,12 +348,17 @@ class Staging:
             if VERBOSE:
                 os.system("ls -l %s" % filename)
             
-            r.pg_restore(filename, self.get_nodata_tables())
+            secs = r.pg_restore(filename, self.get_nodata_tables())
 
         except Exception, e:
             mesg  = "Error: couldn't pg_restore from '%s'" % (filename)
             mesg += "\nDetail: %s" % e
-            raise PGRestoreFailedException, mesg        
+            raise PGRestoreFailedException, mesg
+
+        if VERBOSE:
+            "%gs pg_restore" % secs
+
+        return secs
 
     def switch(self):
         """ edit pgbouncer configuration file to have canonical dbname point
