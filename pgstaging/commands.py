@@ -384,6 +384,9 @@ exports = {
     "pause":     pause_pgbouncer_database,
     "resume":    resume_pgbouncer_database,
 
+    # configuration file
+    "get":       get_config_option,
+
     # experimental commands used to add features
     "nodata":    list_nodata_tables,
     "catalog":   catalog,

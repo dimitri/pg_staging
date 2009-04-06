@@ -108,22 +108,8 @@ def parse_options():
     # we return configuration filename, command, command args
     return opts.config, args[0], args[1:]
 
-if __name__ == '__main__':
-    # first parse command line
-    try:
-        conffile, command, args = parse_options()
-    except NoArgsCommandLineException, conffile:
-        # no args given, console mode
-        from pgstaging.console import Console
-        c = Console()
-        # ok I need to read docs about exceptions
-        c.set_config(str(conffile), recheck = False)
-        c.cmdloop()
-
-        # exiting the console also exit main program
-        sys.exit(0)
-
-    # only load staging module after options are set
+def run_command(conffile, command, args):
+    """ run given pg_staging command """
     from pgstaging.options import VERBOSE, DRY_RUN, DEBUG
 
     # and act accordinly
@@ -139,5 +125,41 @@ if __name__ == '__main__':
         if DEBUG:
             raise
         sys.exit(1)
+    
 
+if __name__ == '__main__':
+
+    # first parse command line
+    try:
+        conffile, command, args = parse_options()
+
+    except NoArgsCommandLineException, conffile:
+
+        # no args given, console mode
+        if sys.stdin.isatty():
+            from pgstaging.console import Console
+            c = Console()
+            # ok I need to read docs about exceptions
+            c.set_config(str(conffile), recheck = False)
+            c.cmdloop()
+
+            # exiting the console also exit main program
+            sys.exit(0)
+
+        else:
+            # loop over input lines
+            import shlex
+            
+            for c in sys.stdin:
+                try:
+                    cli = shlex.split(c)
+                    run_command(conffile, cli[0], cli[1:])
+                except Exception, e:
+                    if DEBUG:
+                        raise
+                    sys.exit(1)
+
+            sys.exit(0)
+
+    run_command(conffile, command, args)    
     sys.exit(0)
