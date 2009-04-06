@@ -291,7 +291,7 @@ class Staging:
         try:
             if VERBOSE:
                 os.system("ls -l %s" % filename)
-            r.pg_restore(filename, self.get_nodata_tables())
+            secs = r.pg_restore(filename, self.get_nodata_tables())
 
             # only switch pgbouncer configuration to new database when there
             # was no restore error
@@ -306,6 +306,8 @@ class Staging:
 
         # remove the dump even when there was no exception
         self.do_remove_dump(filename)
+
+        return secs
 
     def load(self, filename):
         """ will pg_restore from the already present dumpfile and determine
@@ -354,9 +356,6 @@ class Staging:
             mesg  = "Error: couldn't pg_restore from '%s'" % (filename)
             mesg += "\nDetail: %s" % e
             raise PGRestoreFailedException, mesg
-
-        if VERBOSE:
-            "%gs pg_restore" % secs
 
         return secs
 
