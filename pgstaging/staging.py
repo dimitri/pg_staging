@@ -341,6 +341,7 @@ class Staging:
         try:
             if VERBOSE:
                 os.system("ls -l %s" % filename)
+            
             r.pg_restore(filename, self.get_nodata_tables())
 
         except Exception, e:

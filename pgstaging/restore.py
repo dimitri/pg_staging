@@ -230,7 +230,9 @@ class pgrestore:
 
         # for meta data (md_) commands, filter_out what's neither in schemas
         # nor in schemas_nodata
-        md_schemas = self.schemas + self.schemas_nodata
+        md_schemas = self.schemas
+        if self.schemas_nodata:
+            md_schemas += self.schemas_nodata
 
         # schemas here are used to filter what to restore (values not in
         # self.schemas are filtered out)
@@ -313,7 +315,7 @@ class pgrestore:
                                     break
                                 
                     # filter out TABLE DATA section for schemas_nodata
-                    if not filter_out \
+                    if not filter_out and self.schemas_nodata is not None \
                            and a == 'TABLE' and b == 'DATA' \
                            and schema in self.schemas_nodata:
                         filter_out = True
@@ -432,7 +434,10 @@ class pgrestore:
 
                     if pname.find('.') == -1:
                         # procedure name is NOT schema qualified
-                        pname = '%s.%s' % (triggers_funcs[pname], pname)
+                        ## if pname in triggers_funcs:
+                        ##     pname = '%s.%s' % (triggers_funcs[pname], pname)
+                        ## else:
+                        pname = '%s.%s' % (current_schema, pname)
 
                     if pname not in triggers[current_schema][current_trigger]:
                         triggers[current_schema][current_trigger].append(pname)
