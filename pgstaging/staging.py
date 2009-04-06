@@ -150,7 +150,7 @@ class Staging:
         # unused here, in fact
         self.dated_dbname = None
         
-        basename = os.path.basename(self.dumpall_url)
+        basename = "%s.%s" % (self.section, os.path.basename(self.dumpall_url))
         filename = self.wget(self.backup_host, self.dumpall_url, basename)
 
         # the restore object host the source sql file method
