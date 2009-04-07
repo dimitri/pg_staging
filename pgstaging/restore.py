@@ -150,7 +150,7 @@ class pgrestore:
                st,
                "-h", self.host,
                "-p %d" % self.port,
-               "-U", self.owner,
+               "-U", self.user,
                "-d", self.dbname,
                catalog,
                filename
