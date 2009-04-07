@@ -376,6 +376,7 @@ class Staging:
 
     def pgbouncer_add_database(self, dbname = None):
         """ edit pgbouncer configuration file to add a database """
+        from options import TERSE
 
         p = pgbouncer.pgbouncer(self.pgbouncer_conf,
                                 self.dbuser,
@@ -389,8 +390,12 @@ class Staging:
 
         self.pgbouncer_update_conf(newconffile)
 
+        if not TERSE:
+            print "added a pgbouncer database %s" % dbname
+
     def pgbouncer_del_database(self, dbname):
         """ edit pgbouncer configuration file to add a database """
+        from options import TERSE
         
         p = pgbouncer.pgbouncer(self.pgbouncer_conf,
                                 self.dbuser,
@@ -400,6 +405,9 @@ class Staging:
         newconffile = p.del_database(dbname)
 
         self.pgbouncer_update_conf(newconffile)
+
+        if not TERSE:
+            print "deleted a pgbouncer database %s" % dbname
 
     def pgbouncer_update_conf(self, newconffile):
         """ reconfigure targeted pgbouncer with given file """
@@ -430,7 +438,7 @@ class Staging:
             commands = commands[1:]
 
         for cmd, returns in commands:
-            if not TERSE:
+            if VERBOSE:
                 print cmd
 
             proc = subprocess.Popen(cmd.split(" "),

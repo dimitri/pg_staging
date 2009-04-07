@@ -147,7 +147,7 @@ class pgbouncer:
 
     def write(self, conf):
         """ write out given config to a file """
-        from options import TERSE
+        from options import VERBOSE
         import tempfile
         fd, realname = tempfile.mkstemp(prefix = '/tmp/pgbouncer.',
                                         suffix = '.ini')
@@ -155,7 +155,7 @@ class pgbouncer:
         conf.write(temp)        
         temp.close()
 
-        if not TERSE:
+        if VERBOSE:
             print "new pgbouncer.ini generated in '%s'" % realname
 
         return realname
