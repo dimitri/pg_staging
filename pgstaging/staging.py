@@ -72,12 +72,26 @@ class Staging:
 
     def set_backup_date(self, date = None):
         """ set the backup date choosen by the user """
+        import datetime
 
-        if date is None:
-            import datetime
-            self.backup_date = datetime.date.today().isoformat()
+        if date is None or date == "today":
+            backup_date = datetime.date.today()
         else:
-            self.backup_date = date
+            if date.find('-') > -1:
+                y, m, d = date.split('-')
+                backup_date = datetime.date(int(y), int(m), int(d))
+
+            elif len(date) == 8:
+                dummy = int(date) # poor man's parsing to raise exception
+                y = date[0:4]
+                m = date[4:6]
+                d = date[6:8]
+                backup_date = datetime.date(int(y), int(m), int(d))
+
+            else:
+                raise ValueError, "Unable to parse backup date: '%s'" % date
+
+        self.backup_date = backup_date.isoformat()
             
         self.dated_dbname = "%s_%s" % (self.dbname,
                                        self.backup_date.replace('-', ''))
