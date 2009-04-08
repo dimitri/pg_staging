@@ -120,6 +120,11 @@ replication::
 
 	configuration filename where to setup the replication options.
 
+tmpdir::
+
+	Directory where to fetch backup files, defaults to +/tmp+. Command
+	line argument +-t+ will override +.ini+ setting.
+
 schemas::
 
 	List of schema to restore. If present, any schema not listed here

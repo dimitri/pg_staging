@@ -1,0 +1,24 @@
+= pg_staging TODO
+
+What's next, doc?
+
+== Important stuff
+
+* londiste replication support
++
+Auto-install londiste providers/subscribers from +replication.ini+
+configuration file. This file is separated because the same database can act
+both as a provider and a subscriber, or be a provider for more than one
+subscriber, or be a subscriber for more than one providers.
+
+* debian packaging
+
+== Some ideas
+
+* show command
+
+  show <dbname> <parameter>
+
+* better "full size" scripting +#! /usr/bin/pg_staging+
+
+  cat script.pgs | pg_staging
