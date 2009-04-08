@@ -148,12 +148,14 @@ if __name__ == '__main__':
 
         else:
             # loop over input lines
+            from pgstaging.options import DEBUG, COMMENT
             import shlex
             
             for c in sys.stdin:
                 try:
-                    cli = shlex.split(c)
-                    run_command(conffile, cli[0], cli[1:])
+                    if len(c) > 0 and c[0] != COMMENT:
+                        cli = shlex.split(c, COMMENT)
+                        run_command(conffile, cli[0], cli[1:])
                 except Exception, e:
                     if DEBUG:
                         raise

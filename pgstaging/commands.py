@@ -396,6 +396,7 @@ exports = {
 
     # configuration file
     "get":       get_config_option,
+    "set":       set_config_option,
 
     # experimental commands used to add features
     "nodata":    list_nodata_tables,

@@ -16,6 +16,9 @@ DEFAULT_TMPDIR      = '/tmp'  # hardcoded default for when no setup is made
 DEFAULT_CONFIG_FILE = "/etc/hm-tools/pg_staging.ini"
 CLIENT_SCRIPT       = "staging-client.sh"
 
+# when using cat file.pgs | pg_staging.py
+COMMENT             = "#"
+
 class NotYetImplementedException(Exception):
     """ Please try again """
     pass
