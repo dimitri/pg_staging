@@ -222,7 +222,30 @@ def show_dbsize(conffile, args):
     # now load configuration and restore
     staging = parse_config(conffile, dbname)
     staging.set_backup_date(backup_date)
-    print "%25s: %s" % staging.dbsize()
+    name, size, pretty = staging.dbsize()
+    print "%25s: %s" % (name, pretty)
+
+def show_all_dbsizes(conffile, args):
+    """ show dbsize for all databases of a dbname section """
+    usage = "dbsizes <dbname> [<dbname> ...]"
+    if len(args) < 1:
+        raise WrongNumberOfArgumentsException, usage
+
+    total_size = 0
+    
+    for db in args:
+        # now load configuration and restore
+        staging = parse_config(conffile, db)
+
+        print db
+        
+        for d, s, p in staging.dbsizes():
+            if s > 0:
+                total_size += s
+                
+            print "%25s: %s" % (d, p)
+
+    print "%25s: %s" % ('total', staging.pg_size_pretty(total_size))
 
 def list_pgbouncer_databases(conffile, args):
     """ list configured pgbouncer databases """
@@ -407,6 +430,7 @@ exports = {
     "databases": list_databases,
     "backups":   list_backups,
     "dbsize":    show_dbsize,
+    "dbsizes":   show_all_dbsizes,
 
     # pgbouncer
     "pgbouncer": list_pgbouncer_databases,

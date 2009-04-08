@@ -155,6 +155,20 @@ class Console(cmd.Cmd):
         else:
             print "Error: no config file"
 
+    def do_dbsizes(self, args):
+        """ print database size """
+        if self.conffile:
+            if args != "":
+                try:
+                    commands.show_all_dbsizes(self.conffile, args.split(' '))
+                except Exception, e:
+                    print e
+            else:
+                print "Error: dbsizes dbname"
+
+        else:
+            print "Error: no config file"
+
     def do_init(self, args):
         """ init <dbname> """
         if self.conffile:

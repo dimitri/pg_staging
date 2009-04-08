@@ -508,17 +508,53 @@ class Staging:
         # and remove it from pgbouncer configuration
         self.pgbouncer_del_database(self.dated_dbname)
         
-    def dbsize(self):
+    def dbsize(self, dbname = None):
         """ return database size, pretty printed """
-        r = restore.pgrestore(self.dated_dbname,
+        if dbname is not None:
+            dated_dbname = dbname
+        else:
+            dated_dbname = self.dated_dbname
+            
+        r = restore.pgrestore(dated_dbname,
                               self.dbuser,
                               self.host,
                               self.pgbouncer_port,
                               self.dbowner,
                               self.maintdb,
                               self.postgres_major)
+
+        size, pretty = r.dbsize()
+        return dated_dbname, size, pretty
+
+    def dbsizes(self):
+        """ generate database name, sizes for all databases in the section """
+        import psycopg2
+        from options import VERBOSE
         
-        return self.dated_dbname, r.dbsize()
+        for name, database, host, port in self.pgbouncer_databases():
+            if name != self.dbname and name.find(self.dbname) == 0:
+                try:
+                    n, size, pretty = self.dbsize(name)
+                    yield name, size, pretty
+                except psycopg2.ProgrammingError, e:
+                    # database does not exists
+                    if VERBOSE:
+                        print "%s does not exists" % name
+                    yield name, -1, -1
+
+        return
+
+    def pg_size_pretty(self, size):
+        """ return the size, pretty printed """
+        r = restore.pgrestore(self.dbname,
+                              self.dbuser,
+                              self.host,
+                              self.pgbouncer_port,
+                              self.dbowner,
+                              self.maintdb,
+                              self.postgres_major)
+
+        return r.pg_size_pretty(size)
 
     def pgbouncer_databases(self):
         """ return pgbouncer database list: name, database, host, port """

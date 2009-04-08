@@ -466,19 +466,43 @@ class pgrestore:
 
     def dbsize(self):
         """ return pretty printed dbsize """
+        from options import VERBOSE
+
+        sql = "SELECT pg_database_size('%s'), " % self.dbname + \
+              "pg_size_pretty(pg_database_size('%s'))" % self.dbname
+
+        if VERBOSE:
+            print sql
 
         try:
             curs = self.mconn.cursor()
-            curs.execute('SELECT pg_size_pretty(pg_database_size(%s));',
-                         [self.dbname])
-
-            dbsize = curs.fetchone()[0]            
+            curs.execute(sql)
+            dbsize, dbsize_pretty = curs.fetchone()
+            dbsize = int(dbsize)
             curs.close()
         except Exception, e:
             raise
-        
 
-        return dbsize
+        return dbsize, dbsize_pretty
+
+    def pg_size_pretty(self, size):
+        """ return pretty printed dbsize """
+        from options import VERBOSE
+
+        sql = "SELECT pg_size_pretty(%s)" % size
+
+        if VERBOSE:
+            print sql
+
+        try:
+            curs = self.mconn.cursor()
+            curs.execute(sql)
+            dbsize_pretty = curs.fetchone()[0]
+            curs.close()
+        except Exception, e:
+            raise
+
+        return dbsize_pretty
 
     def set_database_search_path(self, search_path):
         """ ALTER DATABASE self.dbname SET search_path TO ... """
