@@ -34,7 +34,8 @@ class Staging:
                  auto_switch   = True,
                  use_sudo      = True,
                  pg_restore    = "/usr/bin/pg_restore",
-                 pg_restore_st = True):
+                 pg_restore_st = True,
+                 tmpdir        = None):
         """ Create a new staging object, configured """
 
         self.creation_time   = time.time()
@@ -62,6 +63,7 @@ class Staging:
         self.schemas         = []
         self.schemas_nodata  = []
         self.replication     = None
+        self.tmpdir          = tmpdir
 
         # init separately, we don't have the information when we create the
         # Staging object from configuration.
@@ -120,9 +122,9 @@ class Staging:
 
     def wget(self, host, url, outfile):
         """ fetch the given url at given host and return where we stored it """
-        from options import TERSE, TMPDIR, BUFSIZE
+        from options import TERSE, BUFSIZE
 
-        filename = "%s/%s" % (TMPDIR, outfile)
+        filename = "%s/%s" % (self.tmpdir, outfile)
 
         if not TERSE:
             print "fetching '%s' from http://%s%s" % (filename,

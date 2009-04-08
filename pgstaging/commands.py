@@ -17,7 +17,7 @@ def get_option(config, section, option, optional=False):
         return config.get(section, option)
 
     if config.has_option('default', option):
-        return config.get(section, 'default')
+        return config.get('default', option)
 
     if not optional:
         mesg = "Unable to read %s.%s configuration" % (section, option)
@@ -69,7 +69,8 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
                               get_option(config, dbname, "auto_switch"),
                               get_option(config, dbname, "use_sudo"),
                               get_option(config, dbname, "pg_restore"),
-                              get_option(config, dbname, "pg_restore_st"))
+                              get_option(config, dbname, "pg_restore_st"),
+                              get_option(config, dbname, "tmpdir", True))
 
             schemas = get_option(config, dbname, "schemas", True)
             if schemas:
@@ -88,6 +89,15 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
                     staging.replication.read(replication)
                 except Exception, e:
                     raise Exception, "Error: unable to read '%s'" % replication
+
+            # Which tmpdir to use?
+            # prefer -t command line option over .ini setup
+            from options import TMPDIR, DEFAULT_TMPDIR
+            if TMPDIR is not None:
+                staging.tmpdir = TMPDIR
+
+            if staging.tmpdir is None:
+                staging.tmpdir = DEFAULT_TMPDIR
             
         except Exception, e:
             print >>sys.stderr, "Configuration error: %s" % e
