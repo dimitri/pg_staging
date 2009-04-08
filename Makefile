@@ -1,7 +1,12 @@
-doc: README.html pg_staging.1 pg_staging.1.html pg_staging.5 pg_staging.5.html
+doc: README.html TODO.html man
 
-README.html:
+man: pg_staging.1 pg_staging.1.html pg_staging.5 pg_staging.5.html
+
+README.html: README
 	asciidoc -a toc README
+
+TODO.html: TODO
+	asciidoc -a toc TODO
 
 pg_staging.1.html: pg_staging.1.txt
 	asciidoc -a toc pg_staging.1.txt
