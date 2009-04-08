@@ -354,7 +354,13 @@ class pgrestore:
                 catalog.write('%s\n' % line)
 
         # chop last \n
-        catalog.seek(-1, os.SEEK_CUR)
+        if 'SEEK_CUR' in os.__dict__:
+            whence = os.SEEK_CUR
+        else:
+            # http://www.python.org/doc/2.4.4/lib/bltin-file-objects.html
+            whence = 1
+            
+        catalog.seek(-1, whence)
         catalog.truncate()
 
         if not out_to_file:
