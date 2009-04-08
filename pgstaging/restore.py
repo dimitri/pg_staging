@@ -239,7 +239,11 @@ class pgrestore:
 
         # for meta data (md_) commands, filter_out what's neither in schemas
         # nor in schemas_nodata
-        md_schemas = self.schemas
+        schemas = self.schemas
+        if schemas is None:
+            schemas = []
+        
+        md_schemas = schemas
         if self.schemas_nodata:
             md_schemas += self.schemas_nodata
 
@@ -252,6 +256,9 @@ class pgrestore:
         triggers = self.get_trigger_funcs(filename)
         
         for line in out.split('\n'):
+            if line.strip() == "":
+                continue
+            
             filter_out = False
 
             if line.find('SCHEMA') > -1            \
@@ -305,10 +312,10 @@ class pgrestore:
                         schema = b
 
                     # filter out ACL lines for schemas we want to exclude
-                    if a == 'ACL' and b == '-' and c in self.schemas:
+                    if a == 'ACL' and b == '-' and c in schemas:
                         filter_out = True
 
-                    # check self.schemas (contains data we want to restore)
+                    # check schemas (contains data we want to restore)
                     if not filter_out and schema not in md_schemas:
                         filter_out = True
 
@@ -319,7 +326,7 @@ class pgrestore:
                             for f in triggers[b][c]:
                                 s = f.split('.')[0]
 
-                                if s not in self.schemas:
+                                if s not in schemas:
                                     filter_out = True
                                     break
                                 
@@ -345,6 +352,10 @@ class pgrestore:
                 catalog.write(';%s\n' % line)
             else:
                 catalog.write('%s\n' % line)
+
+        # chop last \n
+        catalog.seek(-1, os.SEEK_CUR)
+        catalog.truncate()
 
         if not out_to_file:
             return catalog
