@@ -188,6 +188,8 @@ def fetch_dump(conffile, args):
     staging.set_backup_date(backup_date)
     staging.get_dump()
 
+    print "  timing", duration_pprint(staging.wget_timing)
+
 def list_databases(conffile, args):
     """ list configured databases """
     config = ConfigParser.SafeConfigParser()
