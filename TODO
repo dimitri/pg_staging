@@ -13,6 +13,8 @@ subscriber, or be a subscriber for more than one providers.
 
 * debian packaging
 
+* +keep_bases+ implementation
+
 == Some ideas
 
 * show command

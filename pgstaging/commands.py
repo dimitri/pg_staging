@@ -82,6 +82,11 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
                 schemas_nodata = [s.strip() for s in schemas_nodata.split(',')]
             staging.schemas_nodata = schemas_nodata
 
+            search_path = get_option(config, dbname, "search_path", True)
+            if search_path:
+                search_path = [s.strip() for s in search_path.split(',')]
+            staging.search_path = search_path
+
             replication = get_option(config, dbname, "replication", True)
             if replication:
                 try:
@@ -337,6 +342,17 @@ def triggers(conffile, args):
             for f in triggers[s][t]:
                 print "%15s %-25s %s" % (s, t, f)
 
+def set_database_search_path(conffile, args):
+    """ alter database <dbname> set search_path """
+    # experimental only
+    usage = "search_path <dbname> [date]"    
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
+
+    # now load configuration and restore
+    staging = parse_config(conffile, dbname)
+    staging.set_backup_date(backup_date)
+    staging.set_database_search_path()
+
 def get_config_option(conffile, args):
     """ <dbname> <option> print the current value of [dbname] option """
     if len(args) != 2:
@@ -399,7 +415,8 @@ exports = {
     "set":       set_config_option,
 
     # experimental commands used to add features
-    "nodata":    list_nodata_tables,
-    "catalog":   catalog,
-    "triggers":  triggers
+    "nodata":      list_nodata_tables,
+    "catalog":     catalog,
+    "triggers":    triggers,
+    "search_path": set_database_search_path
     }

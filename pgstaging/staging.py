@@ -60,10 +60,12 @@ class Staging:
         self.use_sudo        = use_sudo    == "True"
         self.pg_restore      = pg_restore
         self.pg_restore_st   = pg_restore_st == "True"
-        self.schemas         = []
-        self.schemas_nodata  = []
         self.replication     = None
         self.tmpdir          = tmpdir
+
+        self.schemas         = []
+        self.schemas_nodata  = []
+        self.search_path     = []
 
         # init separately, we don't have the information when we create the
         # Staging object from configuration.
@@ -141,9 +143,9 @@ class Staging:
         filename = "%s/%s" % (self.tmpdir, outfile)
 
         if not TERSE:
-            print "fetching '%s' from http://%s%s" % (filename,
-                                                      host,
-                                                      url)
+            print "fetching '%s'\n    from http://%s%s" % (filename,
+                                                           host,
+                                                           url)
             
         dump_fd  = open(filename, "wb")
 
@@ -320,6 +322,9 @@ class Staging:
             self.do_remove_dump(filename)
             raise PGRestoreFailedException, mesg
 
+        # set the database search_path if non default
+        self.set_database_search_path()
+
         # remove the dump even when there was no exception
         self.do_remove_dump(filename)
 
@@ -372,6 +377,9 @@ class Staging:
             mesg  = "Error: couldn't pg_restore from '%s'" % (filename)
             mesg += "\nDetail: %s" % e
             raise PGRestoreFailedException, mesg
+
+        # set the database search_path if non default
+        self.set_database_search_path()
 
         return secs
 
@@ -543,3 +551,17 @@ class Staging:
                                 self.pgbouncer_port)
 
         p.resume(dbname)
+
+    def set_database_search_path(self):
+        """ set search path """
+
+        if self.search_path:
+            r = restore.pgrestore(self.dated_dbname,
+                                  self.dbuser,
+                                  self.host,
+                                  self.pgbouncer_port,
+                                  self.dbowner,
+                                  self.maintdb,
+                                  self.postgres_major)
+
+            r.set_database_search_path(self.search_path)

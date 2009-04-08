@@ -127,14 +127,20 @@ tmpdir::
 
 schemas::
 
-	List of schema to restore. If present, any schema not listed here
-	nor in +schemas_nodata+ will get filtered out from the +pg_restore+
-	catalog.
+	List of schema (comma separated) to restore. If present, any schema
+	not listed here nor in +schemas_nodata+ will get filtered out from
+	the +pg_restore+ catalog.
+
+search_path::
+
+	List of schemas (comma separated) to add to the database
+	+search_path+, using the +SQL+ command +ALTER DATABASE self.dbname
+	SET search_path TO +.
 
 schemas_nodata::
 
-	List of schema to restore without content. The +pg_restore+ catalog
-	+TABLE DATA+ sections will get filtered out.
+	List of schema (comma separated) to restore without content. The
+	+pg_restore+ catalog +TABLE DATA+ sections will get filtered out.
 
 == EXAMPLE ==
 

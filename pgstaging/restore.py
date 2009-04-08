@@ -479,3 +479,21 @@ class pgrestore:
         
 
         return dbsize
+
+    def set_database_search_path(self, search_path):
+        """ ALTER DATABASE self.dbname SET search_path TO ... """
+        from options import VERBOSE
+        
+        try:
+            sp  = ", ".join(search_path)
+            sql = 'ALTER DATABASE %s SET search_path TO %s;' \
+                  % (self.dbname, sp)
+
+            if VERBOSE:
+                print sql
+            
+            curs = self.mconn.cursor()
+            curs.execute(sql)
+            curs.close()
+        except Exception, e:
+            raise
