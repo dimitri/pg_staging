@@ -140,7 +140,7 @@ def duration_pprint(duration):
         return ' %02dm%06.3f' % (m, s)
         
     else:
-        return '%10.3f' % duration
+        return '%6.3fs' % duration
 
 def init_cluster(conffile, args):
     """ <dbname> """
@@ -160,9 +160,10 @@ def restore(conffile, args):
     # now load configuration and restore
     staging = parse_config(conffile, dbname)
     staging.set_backup_date(backup_date)
-    secs = staging.restore()
+    wget_t, pgrestore_t = staging.restore()
 
-    print "restore time:", duration_pprint(secs)
+    print "  fetching:", duration_pprint(wget_t)
+    print "pg_restore:", duration_pprint(pgrestore_t)
 
 def restore_from_dump(conffile, args):
     """ <dbname> <dumpfile> """

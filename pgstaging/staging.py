@@ -147,9 +147,11 @@ class Staging:
                                                            host,
                                                            url)
             
-        dump_fd  = open(filename, "wb")
+        import time
+        start_time = time.time()
 
-        conn = httplib.HTTPConnection(host)
+        dump_fd = open(filename, "wb")
+        conn    = httplib.HTTPConnection(host)
         conn.request("GET", url)
         r = conn.getresponse()
 
@@ -166,6 +168,9 @@ class Staging:
             done = not data or len(data) < BUFSIZE
 
         dump_fd.close()
+
+        end_time = time.time()
+        self.wget_timing = end_time - start_time
 
         return filename
 
@@ -328,7 +333,7 @@ class Staging:
         # remove the dump even when there was no exception
         self.do_remove_dump(filename)
 
-        return secs
+        return self.wget_timing, secs
 
     def load(self, filename):
         """ will pg_restore from the already present dumpfile and determine
