@@ -232,6 +232,28 @@ def show_all_dbsizes(conffile, args):
         raise WrongNumberOfArgumentsException, usage
 
     total_size = 0
+
+    if args[0] in ('--all', '--match'):
+        config = ConfigParser.SafeConfigParser()
+
+        try:
+            config.read(conffile)
+        except Exception, e:
+            print >>sys.stderr, "Error: unable to read '%s'" % conffile
+            print >>sys.stderr, e
+            sys.exit(2)
+
+    if args[0] == '--all':
+        args = config.sections()
+
+    elif args[0] == '--match':
+        if len(args) != 2:
+            raise WrongNumberOfArgumentsException, usage
+
+        import re
+        regexp = re.compile(args[1])
+
+        args = [x for x in config.sections() if regexp.search(x)]
     
     for db in args:
         # now load configuration and restore
