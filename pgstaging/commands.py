@@ -245,7 +245,7 @@ def show_all_dbsizes(conffile, args):
                 
             print "%25s: %s" % (d, p)
 
-    print "%25s: %s" % ('total', staging.pg_size_pretty(total_size))
+    print "%-25s= %s" % ('Total', staging.pg_size_pretty(total_size))
 
 def list_pgbouncer_databases(conffile, args):
     """ list configured pgbouncer databases """
