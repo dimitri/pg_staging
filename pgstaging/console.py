@@ -111,6 +111,20 @@ class Console(cmd.Cmd):
         else:
             print "Error: no config file"
 
+    def do_switch(self, args):
+        """ switch given database as default (no date suffix) in pgbouncer """
+        if self.conffile:
+            if args != "":
+                try:
+                    commands.switch(self.conffile, args.split(' '))
+                except Exception, e:
+                    print e
+            else:
+                print "Error: switch dbname [date]"
+
+        else:
+            print "Error: no config file"
+
     def do_pause(self, args):
         """ pause given database in pgbouncer """
         if self.conffile:
