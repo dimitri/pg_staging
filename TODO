@@ -15,6 +15,8 @@ subscriber, or be a subscriber for more than one providers.
 
 * +keep_bases+ implementation
 
+* implement VACUUM ANALYZE <dbname> and add it post-restore
+
 == Some ideas
 
 * show command
