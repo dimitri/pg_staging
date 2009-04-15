@@ -155,6 +155,21 @@ class Console(cmd.Cmd):
         else:
             print "Error: no config file"
 
+    def do_search_path(self, args):
+        """ print database size """
+        if self.conffile:
+            if args != "":
+                try:
+                    commands.set_database_search_path(self.conffile,
+                                                      args.split(' '))
+                except Exception, e:
+                    print e
+            else:
+                print "Error: search_path dbname [date]"
+
+        else:
+            print "Error: no config file"
+
     def do_dbsize(self, args):
         """ print database size """
         if self.conffile:

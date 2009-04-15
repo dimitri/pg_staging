@@ -524,6 +524,9 @@ class pgrestore:
             
             curs = self.mconn.cursor()
             curs.execute(sql)
+            self.mconn.commit()
             curs.close()
         except Exception, e:
+            if VERBOSE:
+                print e
             raise
