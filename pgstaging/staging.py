@@ -556,6 +556,18 @@ class Staging:
 
         return r.pg_size_pretty(size)
 
+    def show(self, setting):
+        """ return setting value """
+        r = restore.pgrestore(self.dbname,
+                              self.dbuser,
+                              self.host,
+                              self.pgbouncer_port,
+                              self.dbowner,
+                              self.maintdb,
+                              self.postgres_major)
+
+        return r.show(setting)
+
     def pgbouncer_databases(self):
         """ return pgbouncer database list: name, database, host, port """
         p = pgbouncer.pgbouncer(self.pgbouncer_conf,

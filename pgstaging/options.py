@@ -71,3 +71,11 @@ class ParseDumpFileException(Exception):
     """ can not parse the dump file: allopass_db.`date -I`.dump """
     pass
 
+
+class StagingRuntimeException(Exception):
+    """ Got an exception while running a command  """
+    pass
+
+class UnknownCommandException(Exception):
+    """ What command did you want me to run exactly? """
+    pass

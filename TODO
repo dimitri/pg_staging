@@ -19,10 +19,6 @@ subscriber, or be a subscriber for more than one providers.
 
 == Some ideas
 
-* show command
-
-  show <dbname> <parameter>
-
 * better "full size" scripting +#! /usr/bin/pg_staging+
 
   cat script.pgs | pg_staging

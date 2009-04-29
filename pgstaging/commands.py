@@ -7,6 +7,8 @@ from options import VERBOSE, DRY_RUN
 from options import WrongNumberOfArgumentsException
 from options import UnknownSectionException
 from options import UnknownOptionException
+from options import StagingRuntimeException
+from options import UnknownOptionException
 
 # cache
 config = None
@@ -142,6 +144,47 @@ def duration_pprint(duration):
     else:
         return '%6.3fs' % duration
 
+##
+## Facilities to run commands, including parsing when necessary
+##
+    
+def run_command(conffile, command, args):
+    """ run given pg_staging command """
+    import sys
+    from pgstaging.options import VERBOSE, DRY_RUN, DEBUG
+
+    # and act accordinly
+    if command not in exports:
+        print >>sys.stderr, "Error: no command '%s'" % command
+        raise UnknownCommandException
+        
+    try:
+        exports[command](conffile, args)
+    except Exception, e:
+        print >>sys.stderr, e
+
+        if DEBUG:
+            raise
+        raise StagingRuntimeException, e
+
+def parse_input_line_and_run_command(conffile, line):
+    """ parse input line """
+    from options import DEBUG, COMMENT
+    import shlex, sys
+            
+    try:
+        if len(line) > 0 and line[0] != COMMENT:
+            cli = shlex.split(line, COMMENT)
+            run_command(conffile, cli[0], cli[1:])
+            
+    except Exception, e:
+        raise
+
+##
+## From now on, pgstaging commands, shared by pg_staging.py and console.py
+##
+
+    
 def init_cluster(conffile, args):
     """ <dbname> """
     usage = "init <dbname>"
@@ -214,12 +257,31 @@ def list_backups(conffile, args):
     for backup, size in staging.list_backups():
         print "%6s %s " % (size, backup)
 
+def show_setting(conffile, args):
+    """ show given database setting current value """
+    usage = "show <dbname> [date] <setting>"
+
+    if len(args) not in (2, 3):
+        raise WrongNumberOfArgumentsException, usage
+
+    if len(args) == 2:
+        setting = args[1]
+        dbname, backup_date = parse_args_for_dbname_and_date(args[0:1], usage)
+        
+    elif len(args) == 3:
+        setting = args[2]
+        dbname, backup_date = parse_args_for_dbname_and_date(args[0:2], usage)
+
+    staging = parse_config(conffile, dbname)
+    staging.set_backup_date(backup_date)
+    value = staging.show(setting)
+    print "%25s: %s" % (setting, value)
+
 def show_dbsize(conffile, args):
     """ show given database size """
     usage = "dbsize <dbname> [date]"
     dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
 
-    # now load configuration and restore
     staging = parse_config(conffile, dbname)
     staging.set_backup_date(backup_date)
     name, size, pretty = staging.dbsize()
@@ -453,6 +515,7 @@ exports = {
     "backups":   list_backups,
     "dbsize":    show_dbsize,
     "dbsizes":   show_all_dbsizes,
+    "show":      show_setting,
 
     # pgbouncer
     "pgbouncer": list_pgbouncer_databases,

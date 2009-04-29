@@ -119,6 +119,17 @@ dbsize <dbname> [<YYYMMDD>]::
         Show database size of given instance, as returned by +SELECT
         pg_size_pretty(pg_database_size(dbname_YYYYMMDD));+
 
+dbsizes --all | --match <pattern> | <dbname>::
+
+	Show database sizes of given instances. With +--all+ show sizes of
+	all instances of all configured section, with +--match+ you can
+	reduce the listing to regexp matching section names, with a
+	+<dbname>+ it'll show sizes of all instances of given section.
+
+show <dbname> [<YYYYMMDD>] <setting>::
+
+     	Show current value of +<setting>+ for given database.
+
 === pgbouncer ===
 
 pgbouncer <dbname>::

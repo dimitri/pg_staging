@@ -12,6 +12,7 @@ from pgstaging.options import CouldNotConnectPostgreSQLException
 from pgstaging.options import WrongNumberOfArgumentsException
 from pgstaging.options import UnknownBackupDateException
 from pgstaging.options import NoArgsCommandLineException
+from pgstaging.options import StagingRuntimeException
 
 from pgstaging.staging import Staging
 
@@ -108,24 +109,6 @@ def parse_options():
     # we return configuration filename, command, command args
     return opts.config, args[0], args[1:]
 
-def run_command(conffile, command, args):
-    """ run given pg_staging command """
-    from pgstaging.options import VERBOSE, DRY_RUN, DEBUG
-
-    # and act accordinly
-    if command not in commands.exports:
-        print >>sys.stderr, "Error: no command '%s'" % command
-        sys.exit(1)
-        
-    try:
-        commands.exports[command](conffile, args)
-    except Exception, e:
-        print >>sys.stderr, e
-
-        if DEBUG:
-            raise
-        sys.exit(1)
-    
 
 if __name__ == '__main__':
 
@@ -134,12 +117,13 @@ if __name__ == '__main__':
         conffile, command, args = parse_options()
 
     except NoArgsCommandLineException, conffile:
+        # ok I need to read docs about exceptions, conffile here ain't
+        # exactly pretty
 
         # no args given, console mode
         if sys.stdin.isatty():
             from pgstaging.console import Console
             c = Console()
-            # ok I need to read docs about exceptions
             c.set_config(str(conffile), recheck = False)
             c.cmdloop()
 
@@ -147,21 +131,22 @@ if __name__ == '__main__':
             sys.exit(0)
 
         else:
-            # loop over input lines
-            from pgstaging.options import DEBUG, COMMENT
-            import shlex
-            
-            for c in sys.stdin:
+            # loop over input lines            
+            for line in sys.stdin:
                 try:
-                    if len(c) > 0 and c[0] != COMMENT:
-                        cli = shlex.split(c, COMMENT)
-                        run_command(conffile, cli[0], cli[1:])
-                except Exception, e:
-                    if DEBUG:
-                        raise
+                    commands.parse_input_line_and_run_command(line)
+                except StagingRuntimeException, e:
                     sys.exit(1)
+                except Exception, e:
+                    raise
 
             sys.exit(0)
 
-    run_command(conffile, command, args)    
+    try:
+        commands.run_command(conffile, command, args)
+    except StagingRuntimeException, e:
+        sys.exit(1)
+    except Exception, e:
+        raise
+
     sys.exit(0)

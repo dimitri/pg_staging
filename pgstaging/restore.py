@@ -510,6 +510,25 @@ class pgrestore:
 
         return dbsize_pretty
 
+    def show(self, setting):
+        """ return pretty printed dbsize """
+        from options import VERBOSE
+
+        sql = "SHOW %s" % setting
+
+        if VERBOSE:
+            print sql
+
+        try:
+            curs = self.mconn.cursor()
+            curs.execute(sql)
+            value = curs.fetchone()[0]
+            curs.close()
+        except Exception, e:
+            raise
+
+        return value
+
     def set_database_search_path(self, search_path):
         """ ALTER DATABASE self.dbname SET search_path TO ... """
         from options import VERBOSE

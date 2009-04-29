@@ -75,191 +75,6 @@ class Console(cmd.Cmd):
         options.VERBOSE = not options.VERBOSE
         print "verbose: %s" % str(options.VERBOSE)
 
-    def do_databases(self, args):
-        """ list configured databases """
-        if self.conffile:
-            commands.list_databases(self.conffile, args)
-        else:
-            print "Error: no config file"
-
-    def do_backups(self, args):
-        """ list available backups for given database """
-        if self.conffile:
-            if args != "":
-                try:
-                    commands.list_backups(self.conffile, args.split(' '))
-                except Exception, e:
-                    print e
-            else:
-                print "Error: backups dbname"
-
-        else:
-            print "Error: no config file"
-
-    def do_pgbouncer(self, args):
-        """ list available backups for given database """
-        if self.conffile:
-            if args != "":
-                try:
-                    commands.list_pgbouncer_databases(self.conffile,
-                                                      args.split(' '))
-                except Exception, e:
-                    print e
-            else:
-                print "Error: pgbouncer dbname"
-
-        else:
-            print "Error: no config file"
-
-    def do_switch(self, args):
-        """ switch given database as default (no date suffix) in pgbouncer """
-        if self.conffile:
-            if args != "":
-                try:
-                    commands.switch(self.conffile, args.split(' '))
-                except Exception, e:
-                    print e
-            else:
-                print "Error: switch dbname [date]"
-
-        else:
-            print "Error: no config file"
-
-    def do_pause(self, args):
-        """ pause given database in pgbouncer """
-        if self.conffile:
-            if args != "":
-                try:
-                    commands.pause_pgbouncer_database(self.conffile,
-                                                      args.split(' '))
-                except Exception, e:
-                    print e
-            else:
-                print "Error: pause dbname [date]"
-
-        else:
-            print "Error: no config file"
-
-    def do_resume(self, args):
-        """ resume given database in pgbouncer """
-        if self.conffile:
-            if args != "":
-                try:
-                    commands.resume_pgbouncer_database(self.conffile,
-                                                      args.split(' '))
-                except Exception, e:
-                    print e
-            else:
-                print "Error: pause dbname [date]"
-
-        else:
-            print "Error: no config file"
-
-    def do_search_path(self, args):
-        """ print database size """
-        if self.conffile:
-            if args != "":
-                try:
-                    commands.set_database_search_path(self.conffile,
-                                                      args.split(' '))
-                except Exception, e:
-                    print e
-            else:
-                print "Error: search_path dbname [date]"
-
-        else:
-            print "Error: no config file"
-
-    def do_dbsize(self, args):
-        """ print database size """
-        if self.conffile:
-            if args != "":
-                try:
-                    commands.show_dbsize(self.conffile, args.split(' '))
-                except Exception, e:
-                    print e
-            else:
-                print "Error: dbsize dbname"
-
-        else:
-            print "Error: no config file"
-
-    def do_dbsizes(self, args):
-        """ print database size """
-        if self.conffile:
-            if args != "":
-                try:
-                    commands.show_all_dbsizes(self.conffile, args.split(' '))
-                except Exception, e:
-                    print e
-            else:
-                print "Error: dbsizes dbname"
-
-        else:
-            print "Error: no config file"
-
-    def do_init(self, args):
-        """ init <dbname> """
-        if self.conffile:
-            try:
-                commands.init_cluster(self.conffile, args.split(" "))
-            except Exception, e:
-                print e
-        else:
-            print "Error: no config file"
-
-    def do_fetch(self, args):
-        """ fetch <dbname> [date] """
-        if self.conffile:
-            if args != "":
-                try:
-                    commands.fetch_dump(self.conffile, args.split(' '))
-                except Exception, e:
-                    print e
-            else:
-                print "Error: fetch dbname"
-
-        else:
-            print "Error: no config file"
-
-    def do_restore(self, args):
-        """ restore <dbname> [<backup_date>] """
-        if self.conffile:
-            try:
-                commands.restore(self.conffile, args.split(" "))
-            except Exception, e:
-                print e
-        else:
-            print "Error: no config file"
-
-    def do_load(self, args):
-        """ load <dbname> <dumpfile> """
-        if self.conffile:
-            try:
-                commands.restore_from_dump(self.conffile, args.split(" "))
-            except Exception, e:
-                print e
-        else:
-            print "Error: no config file"
-
-    def do_drop(self, args):
-        """ drop <dbname> [<backup_date>] """
-        if self.conffile:
-            try:
-                commands.drop(self.conffile, args.split(" "))
-            except Exception, e:
-                print e
-        else:
-            print "Error: no config file"
-
-    def do_commands(self, args):
-        """ list available commands and some help too """
-        if self.conffile:
-            commands.list_commands(self.conffile, args)
-        else:
-            print "Error: no config file"
-        
-
     def do_help(self, args):
         """Get help on commands
            'help' or '?' with no arguments prints a list of commands for which help is available
@@ -305,13 +120,19 @@ class Console(cmd.Cmd):
         pass
 
     def default(self, line):       
-        """Called on an input line when the command prefix is not recognized.
-           In that case we execute the line as Python code.
+        """Called on an input line when the command prefix is not
+           recognized.  In that case we refer to
+           commands.parse_input_line_and_run_command() function.
         """
-        try:
-            exec(line) in self._locals, self._globals
-        except Exception, e:
-            print e.__class__, ":", e
+
+        if self.conffile:
+            try:
+                commands.parse_input_line_and_run_command(self.conffile, line)
+            except Exception, e:
+                # prints are already managed in commands module
+                pass
+        else:
+            print "Error: no config file"
 
     def set_config(self, conffile, recheck = True):
         """ set self.conffile  """
