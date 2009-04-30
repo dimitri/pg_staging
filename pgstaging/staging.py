@@ -621,10 +621,16 @@ class Staging:
         """ prepare .ini files for all concerned providers """
         if self.replication:
             l = londiste.londiste(self.replication, self.section,
-                                  self.dbname, self.dated_dbname)
-
+                                  self.dbname, self.dated_dbname,
+                                  self.tmpdir, clean = True)
+            
             for p in l.providers():
-                filename = l.write(p, self.tmpdir)
+                filename = l.write(p)
                 yield p, filename
 
+            for t in l.tickers():
+                filename = t.write()
+                if filename:
+                    yield t.section, filename
+                
         return
