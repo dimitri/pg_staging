@@ -144,7 +144,15 @@ resume <dbname> [<YYYMMDD>]::
 
 	 Issue a +pgbouncer+ +resume <dbname>+ command.
 
-=== experimental ===
+=== londiste ===
+
+init-londiste <dbname> [<YYYMMDD>]::
+
+	 Prepare londiste configuration files in =TMPDIR=. Work-in-progess,
+	 the intention is to send them over to the provider hosts and start
+	 the daemons (=pgqadm.py= and =londiste.py=).
+
+=== experimental and internal ===
 
 nodata::
 
