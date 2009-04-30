@@ -8,7 +8,7 @@ from options import NotYetImplementedException
 from options import CouldNotGetDumpException
 from options import PGRestoreFailedException
 from options import SubprocessException
-import pgbouncer, restore
+import pgbouncer, restore, londiste
 
 class Staging:
     """ Staging Object relates to a database name, where to find the backups
@@ -233,15 +233,13 @@ class Staging:
     def get_nodata_tables(self):
         """ return a list of tables to avoid restoring """
 
-        # we avoid restoring tables which we are a replication subscriber of
-        tables = set()
         if self.replication:
-            for s in self.replication.sections():
-                if self.replication.has_option(s, 'subscriber'):
-                    if self.replication.get(s, 'subscriber') == self.section:
-                        p = set(self.replication.get(s, 'provides').split(' '))
-                        tables = tables.union(p)
-        return tables
+            l = londiste.londiste(self.replication, self.section,
+                                  self.dbname, self.dated_dbname)
+
+            return l.get_nodata_tables()
+        
+        return
 
     def get_triggers(self, filename):
         """ get a list of triggers with the functions attached to them """
@@ -618,3 +616,15 @@ class Staging:
                                   self.postgres_major)
 
             r.set_database_search_path(self.search_path)
+
+    def init_londiste(self):
+        """ prepare .ini files for all concerned providers """
+        if self.replication:
+            l = londiste.londiste(self.replication, self.section,
+                                  self.dbname, self.dated_dbname)
+
+            for p in l.providers():
+                filename = l.write(p, self.tmpdir)
+                yield p, filename
+
+        return

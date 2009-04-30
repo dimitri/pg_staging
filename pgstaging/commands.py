@@ -394,18 +394,6 @@ def drop(conffile, args):
     staging.set_backup_date(backup_date)
     staging.drop()
 
-def list_nodata_tables(conffile, args):
-    """ list tables to restore without their data """
-    # experimental only
-    usage = "nodata <dbname> [date]"    
-    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
-
-    # now load configuration and restore
-    staging = parse_config(conffile, dbname)
-    staging.set_backup_date(backup_date)
-    for t in staging.get_nodata_tables():
-        print t
-
 def catalog(conffile, args):
     """ <dbname> [dump] print catalog for dbname, edited for nodata tables """
     # experimental devel facility, not too much error handling
@@ -463,6 +451,28 @@ def set_database_search_path(conffile, args):
     staging.set_backup_date(backup_date)
     staging.set_database_search_path()
 
+def list_nodata_tables(conffile, args):
+    """ list tables to restore without their data """
+    usage = "nodata <dbname> [date]"    
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
+
+    # now load configuration and restore
+    staging = parse_config(conffile, dbname)
+    staging.set_backup_date(backup_date)
+    for t in staging.get_nodata_tables():
+        print t
+
+def prepare_londiste_ini_files(conffile, args):
+    """ prepare londiste files for providers of given dbname section """
+    usage = "init_londiste <dbname> [date]"    
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
+
+    # now load configuration and restore
+    staging = parse_config(conffile, dbname)
+    staging.set_backup_date(backup_date)
+    for provider, filename in staging.init_londiste():
+        print "%25s: %s" % (provider, filename)
+
 def get_config_option(conffile, args):
     """ <dbname> <option> print the current value of [dbname] option """
     if len(args) != 2:
@@ -511,24 +521,27 @@ exports = {
     "fetch":     fetch_dump,
 
     # listing
-    "databases": list_databases,
-    "backups":   list_backups,
-    "dbsize":    show_dbsize,
-    "dbsizes":   show_all_dbsizes,
-    "show":      show_setting,
+    "databases":   list_databases,
+    "backups":     list_backups,
+    "dbsize":      show_dbsize,
+    "dbsizes":     show_all_dbsizes,
+    "show":        show_setting,
+    "search_path": set_database_search_path,
 
     # pgbouncer
     "pgbouncer": list_pgbouncer_databases,
     "pause":     pause_pgbouncer_database,
     "resume":    resume_pgbouncer_database,
 
+    # londiste
+    "init-londiste": prepare_londiste_ini_files,
+
     # configuration file
     "get":       get_config_option,
     "set":       set_config_option,
 
-    # experimental commands used to add features
+    # internal subcommands commands used to add features
     "nodata":      list_nodata_tables,
     "catalog":     catalog,
     "triggers":    triggers,
-    "search_path": set_database_search_path
     }
