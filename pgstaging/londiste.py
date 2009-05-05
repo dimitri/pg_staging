@@ -3,6 +3,7 @@
 ##
 import os, os.path, ConfigParser
 from options import UnknownOptionException, UnknownSectionException
+from options import NotYetImplementedException
 
 class londiste:
     """ Prepare londiste setup from a central INI file, for a database """
@@ -61,8 +62,8 @@ class londiste:
                 mesg = "Replication Section '%s' has no 'job_name' option" % t
                 raise UnknownOptionException, mesg
 
-            p = pgqadm(self.config, t, self.dbname, self.instance, self.tmpdir)
-            yield p
+            pgq = pgqadm(self.config, t, self.dbname, self.instance, self.tmpdir)
+            yield pgq
         return
 
     def job_name(self, provider):
@@ -126,11 +127,12 @@ class londiste:
 
         return filename
 
-    def send(self, provider):
+    def send(self, provider, filename):
         """ send the londiste file for provider to the remote host """
+        print "SEND %s TO %s" % (filename, self.config.get(self.section, 'host'))
         raise NotYetImplementedException, "try later"
 
-    def start(self):
+    def start(self, provider, filename):
         """ starts the replication daemons """
         raise NotYetImplementedException, "try later"
 
@@ -209,8 +211,9 @@ class pgqadm:
 
         return filename
 
-    def send(self):
+    def send(self, filename):
         """ send the pgqadm file to the remote host """
+        print "SEND %s TO %s" % (filename, self.config.get(self.section, 'host'))
         raise NotYetImplementedException, "try later"
 
     def start(self):

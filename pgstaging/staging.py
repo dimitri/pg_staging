@@ -623,14 +623,23 @@ class Staging:
             l = londiste.londiste(self.replication, self.section,
                                   self.dbname, self.dated_dbname,
                                   self.tmpdir, clean = True)
-            
-            for p in l.providers():
-                filename = l.write(p)
-                yield p, filename
 
+            # first the tickers
             for t in l.tickers():
                 filename = t.write()
                 if filename:
+                    t.send(filename)
+                    t.start(filename)
                     yield t.section, filename
+
+            # now the londiste daemons
+            for p in l.providers():
+                # have the londiste setup written then send it and run the
+                # daemon
+                filename = l.write(p)
+                l.send(p, filename)
+                l.start(p, filename)
+                
+                yield p, filename
                 
         return
