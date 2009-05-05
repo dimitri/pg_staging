@@ -17,6 +17,13 @@ subscriber, or be a subscriber for more than one providers.
 
 * implement VACUUM ANALYZE <dbname> and add it post-restore
 
+* add support for custom SQL script to run
++   
++pg_staging+ should be able to process custom SQL files, in a deterministic
+order, from a given +sql_path+ configuration setup. All '+*.sql+ will be
+processed from the client where +pg_staging+ is running, in alphabetical
+order, subdirs ignored.
+
 == Some ideas
 
 * better "full size" scripting +#! /usr/bin/pg_staging+
