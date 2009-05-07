@@ -448,7 +448,7 @@ class Staging:
             utils.scp(self.host, newconffile, '/tmp')
             
         utils.run_client_script(self.host,
-                                [newconffile, self.pgbouncer_port],
+                                ["pgbouncer", newconffile, self.pgbouncer_port],
                                 self.use_sudo)
 
         # if target isn't localhost, rm the local temp file
@@ -597,20 +597,20 @@ class Staging:
                                   self.tmpdir, clean = True)
 
             # first the tickers
-            for t in l.tickers():
+            for t, host in l.tickers():
                 filename = t.write()
                 if filename:
-                    t.send(filename)
-                    t.start(filename)
+                    t.send(host, filename, self.use_sudo)
+                    #t.start(filename)
                     yield t.section, filename
 
             # now the londiste daemons
-            for p in l.providers():
+            for p, host in l.providers():
                 # have the londiste setup written then send it and run the
                 # daemon
                 filename = l.write(p)
-                l.send(p, filename)
-                l.start(p, filename)
+                l.send(p, host, filename, self.use_sudo)
+                #l.start(p, filename)
                 
                 yield p, filename
                 

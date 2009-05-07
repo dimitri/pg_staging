@@ -2,8 +2,9 @@
 ## launch
 ##
 import os, os.path, ConfigParser
+import utils
 from utils import UnknownOptionException, UnknownSectionException
-from utils import NotYetImplementedException
+from utils import NotYetImplementedException, SubprocessException
 
 class londiste:
     """ Prepare londiste setup from a central INI file, for a database """
@@ -34,7 +35,7 @@ class londiste:
         for s in self.config.sections():
             if self.config.has_option(s, 'provider'):
                 if self.config.get(s, 'provider') == self.section:
-                    yield s
+                    yield s, self.config.get(s, 'host')
         return
 
     def subscribers(self):
@@ -47,7 +48,7 @@ class londiste:
 
     def tickers(self):
         """ list all tickers daemon we'll need for this section/dbname """
-        for p in self.providers():
+        for p, host in self.providers():
             if not self.config.has_option(p, 'ticker'):
                 mesg = "Replication section '%s' has no 'ticker' option" % p
                 raise UnknownOptionException, mesg
@@ -63,7 +64,7 @@ class londiste:
                 raise UnknownOptionException, mesg
 
             pgq = pgqadm(self.config, t, self.dbname, self.instance, self.tmpdir)
-            yield pgq
+            yield pgq, host
         return
 
     def job_name(self, provider):
@@ -87,7 +88,7 @@ class londiste:
         self.ini_files[provider] = ConfigParser.SafeConfigParser()
         ini = self.ini_files[provider]
 
-        if provider not in self.providers():
+        if provider not in [p for p, host in self.providers()]:
             mesg = "Can't prepare replication for unknown provider " + \
                    "'%s' of '%s'" % (provider, self.dbname)
             raise UnknownSectionException, mesg
@@ -127,10 +128,16 @@ class londiste:
 
         return filename
 
-    def send(self, provider, filename):
+    def send(self, provider, host, filename, use_sudo):
         """ send the londiste file for provider to the remote host """
-        print "SEND %s TO %s" % (filename, self.config.get(self.section, 'host'))
-        raise NotYetImplementedException, "try later"
+        utils.scp(host, filename, '/tmp')
+
+        remote_filename = os.path.basename(filename)
+        tables = self.config.get(provider, 'provides').split(' ')
+        utils.run_client_script(host,
+                                ['init-londiste', remote_filename, tables],
+                                use_sudo)
+        return
 
     def start(self, provider, filename):
         """ starts the replication daemons """
@@ -211,10 +218,14 @@ class pgqadm:
 
         return filename
 
-    def send(self, filename):
+    def send(self, host, filename, use_sudo):
         """ send the pgqadm file to the remote host """
-        print "SEND %s TO %s" % (filename, self.config.get(self.section, 'host'))
-        raise NotYetImplementedException, "try later"
+        utils.scp(host, filename, '/tmp')
+        remote_filename = os.path.basename(filename)
+
+        out, err = utils.run_client_script(host,
+                                           ['init-pgq', remote_filename],
+                                           use_sudo)
 
     def start(self):
         """ start the ticker daemon on remote host """

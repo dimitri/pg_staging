@@ -9,8 +9,7 @@ RET_BOTH = 4
 def run_command(command,
                 expected_retcodes = 0, returning = RET_CODE, stdin = None):
     """run a command and raise an exception if retcode not in expected_retcode"""
-    from options import VERBOSE
-    
+    from options import VERBOSE, DEBUG
     if VERBOSE:
         print command
 
@@ -31,6 +30,9 @@ def run_command(command,
     out, err = proc.communicate()
 
     if proc.returncode not in expected_retcodes:
+        if DEBUG:
+            print out
+        
         mesg  = 'Error [%d]: %s' % (proc.returncode, command)
         mesg += '\nDetail: %s' % err
         raise SubprocessException, mesg
@@ -49,7 +51,7 @@ def run_command(command,
 
 def scp(host, src, dst):
     """ scp src host:dst """
-    command = "scp %s %s:/tmp" % (newconffile, self.host)
+    command = "scp %s %s:/tmp" % (src, host)
     return run_command(command)
 
 def ssh_cat(host, filename):
@@ -68,7 +70,7 @@ def run_client_script(host, args, use_sudo = True):
 
     str_args = " ".join([str(x) for x in args])
     command  = "ssh %s %s ./%s %s" % (host, sudo, CLIENT_SCRIPT, str_args)
-    return run_command(command)
+    return run_command(command, returning = RET_OUT)
 
 class NotYetImplementedException(Exception):
     """ Please try again """
