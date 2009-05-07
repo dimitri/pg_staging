@@ -4,11 +4,11 @@
 import ConfigParser
 from staging import Staging
 from options import VERBOSE, DRY_RUN
-from options import WrongNumberOfArgumentsException
-from options import UnknownSectionException
-from options import UnknownOptionException
-from options import StagingRuntimeException
-from options import UnknownOptionException
+from utils import WrongNumberOfArgumentsException
+from utils import UnknownSectionException
+from utils import UnknownOptionException
+from utils import StagingRuntimeException
+from utils import UnknownOptionException
 
 # cache
 config = None

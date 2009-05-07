@@ -6,13 +6,13 @@ import os, os.path, sys
 from optparse import OptionParser
 
 import pgstaging.options
-from pgstaging.options import NotYetImplementedException
-from pgstaging.options import CouldNotGetDumpException
-from pgstaging.options import CouldNotConnectPostgreSQLException
-from pgstaging.options import WrongNumberOfArgumentsException
-from pgstaging.options import UnknownBackupDateException
-from pgstaging.options import NoArgsCommandLineException
-from pgstaging.options import StagingRuntimeException
+from pgstaging.utils import NotYetImplementedException
+from pgstaging.utils import CouldNotGetDumpException
+from pgstaging.utils import CouldNotConnectPostgreSQLException
+from pgstaging.utils import WrongNumberOfArgumentsException
+from pgstaging.utils import UnknownBackupDateException
+from pgstaging.utils import NoArgsCommandLineException
+from pgstaging.utils import StagingRuntimeException
 
 from pgstaging.staging import Staging
 
@@ -68,7 +68,7 @@ def parse_options():
 
     pgstaging.options.DEBUG   = opts.debug
     pgstaging.options.TERSE   = opts.terse
-    pgstaging.options.VERBOSE = opts.verbose
+    pgstaging.options.VERBOSE = opts.verbose or opts.debug
     pgstaging.options.DRY_RUN = opts.dry_run
     pgstaging.options.TMPDIR  = opts.tmpdir
 

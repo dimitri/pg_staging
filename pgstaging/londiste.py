@@ -2,8 +2,8 @@
 ## launch
 ##
 import os, os.path, ConfigParser
-from options import UnknownOptionException, UnknownSectionException
-from options import NotYetImplementedException
+from utils import UnknownOptionException, UnknownSectionException
+from utils import NotYetImplementedException
 
 class londiste:
     """ Prepare londiste setup from a central INI file, for a database """

@@ -5,10 +5,10 @@
 import os, psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from options import NotYetImplementedException
-from options import CouldNotConnectPostgreSQLException
-from options import CreatedbFailedException
-from options import PGRestoreFailedException
+from utils import NotYetImplementedException
+from utils import CouldNotConnectPostgreSQLException
+from utils import CreatedbFailedException
+from utils import PGRestoreFailedException
 
 class pgrestore:
     """ Will launch correct pgrestore binary to restore a dump file to some
@@ -17,24 +17,26 @@ class pgrestore:
     def __init__(self, dbname, user, host, port, owner, maintdb, major,
                  restore_cmd = "/usr/bin/pg_restore", st = False,
                  schemas = [], schemas_nodata = [],
-                 connect = True):
+                 connect = True, connect_timeout = 3):
         """ dump is a filename """
         from options import VERBOSE
 
-        self.dbname         = dbname
-        self.user           = user
-        self.host           = host
-        self.port           = int(port)
-        self.owner          = owner
-        self.maintdb        = maintdb
-        self.major          = major
-        self.restore_cmd    = restore_cmd
-        self.st             = st
-        self.schemas        = schemas
-        self.schemas_nodata = schemas_nodata
+        self.dbname          = dbname
+        self.user            = user
+        self.host            = host
+        self.port            = int(port)
+        self.owner           = owner
+        self.maintdb         = maintdb
+        self.major           = major
+        self.restore_cmd     = restore_cmd
+        self.st              = st
+        self.schemas         = schemas
+        self.schemas_nodata  = schemas_nodata
+        self.connect_timeout = connect_timeout
 
-        self.dsn    = "dbname='%s' user='%s' host='%s' port=%d" \
-                      % (self.maintdb, self.user, self.host, self.port)
+        self.dsn = "dbname='%s' user='%s' host='%s' port=%d connect_timeout=%d" \
+                   % (self.maintdb, self.user, self.host, self.port,
+                      self.connect_timeout)
         self.mconn  = None
 
         if not connect:
@@ -123,6 +125,27 @@ class pgrestore:
         if not TERSE:
             print 'droped database "%s"' % self.dbname
 
+    def try_connection(self, timeout = None):
+        """ try to connect to target database and raise Exception after
+        timeout, this helps preventing pgbouncer pause issues and waiting
+        before a non running pg_restore"""
+        from options import VERBOSE
+
+        if timeout is None:
+            timeout = self.connect_timeout
+        
+        dsn = "dbname='%s' user='%s' host='%s' port=%d connect_timeout=%d" \
+              % (self.dbname, self.user, self.host, self.port, timeout)
+
+        if VERBOSE or True:
+            print "Trying to connect to: %s" % dsn
+
+        try:
+            mconn = psycopg2.connect(dsn)
+            mconn.close()
+        except Exception, e:
+            raise
+
     def pg_restore(self, filename, excluding_tables = []):
         """ restore dump file to new database """
         from options import VERBOSE, TERSE
@@ -149,7 +172,7 @@ class pgrestore:
         cmd = [self.restore_cmd,
                st,
                "-h", self.host,
-               "-p %d" % self.port,
+               "-p", str(self.port),
                "-U", self.user,
                "-d", self.dbname,
                catalog,
@@ -160,30 +183,19 @@ class pgrestore:
         if not TERSE:
             print " ".join(cmd)
 
+        # try to connect with a safe timeout, raise an exception when failing
+        print 'COUCOU'
+        self.try_connection()
+
         # mesure pg_restore timing
-        import time
+        import time, utils
         start_time = time.time()
 
-        ## for some reason subprocess.Popen() is unable to see pg_restore
-        ## stderr and return code
-        ##
-        out  = os.popen(" ".join(cmd))
-        line = 'stupid init value'
-        while line != '':
-            line = out.readline()
-            if VERBOSE:
-                print line[:-1]
-
-        returncode = out.close()
-
+        # utils.run_command will raise a SubprocessException if pg_restore
+        # returns an error code (non zero)
+        out = utils.run_command(cmd, returning = utils.RET_OUT)
+        
         end_time = time.time()
-
-        if VERBOSE:
-            print "pg_restore return:", returncode
-
-        if returncode is not None and returncode != 0:
-            mesg = "pg_restore returned %d" % returncode
-            raise PGRestoreFailedException, mesg
 
         # time elapsed, in secs
         return end_time - start_time
@@ -193,16 +205,7 @@ class pgrestore:
         from options import VERBOSE
 
         cmd = [self.restore_cmd, "-l", filename]
-
-        import subprocess
-        proc = subprocess.Popen(cmd,
-                                stdout = subprocess.PIPE,
-                                stderr = subprocess.PIPE)
-
-        out, err = proc.communicate()
-
-        if proc.returncode != 0:
-            raise PGRestoreFailedException, err
+        out = utils.run_command(cmd, returning = utils.RET_OUT)
 
         from cStringIO import StringIO
         catalog = StringIO()
@@ -398,16 +401,7 @@ class pgrestore:
         from options import VERBOSE
 
         cmd = [self.restore_cmd, "-s", filename]
-
-        import subprocess
-        proc = subprocess.Popen(cmd,
-                                stdout = subprocess.PIPE,
-                                stderr = subprocess.PIPE)
-
-        out, err = proc.communicate()
-
-        if proc.returncode != 0:
-            raise PGRestoreFailedException, err
+        out = utils.run_command(cmd, returning = utils.RET_OUT)
 
         # expressions we're searching
         set_search_path     = 'SET search_path = '

@@ -7,7 +7,8 @@
 ## subprocess.
 ##
 import os
-from options import CouldNotGetPgBouncerConfigException
+import utils
+from utils import CouldNotGetPgBouncerConfigException, SubprocessException
 
 class pgbouncer:
     """ PgBouncer class to get some data out of special SHOW commands """
@@ -74,19 +75,14 @@ class pgbouncer:
 
     def get_config(self):
         """ ssh host cat config """
-        import subprocess
-
-        
-        cmd  = "ssh %s cat %s" % (self.host, self.conffile)
-        proc = subprocess.Popen(cmd.split(" "),
-                                stdout = subprocess.PIPE)
-
-        out, err = proc.communicate()
-
-        if proc.returncode != 0:
+        import sys
+        try:
+            content = utils.ssh_cat(self.host, self.conffile)
+        except SubprocessException, err:
+            print >>sys.stderr, err
             raise CouldNotGetPgBouncerConfigException, "See previous output"
 
-        return out
+        return content
 
     def parse_config(self):
         """ return a ConfigParser object """
@@ -167,18 +163,7 @@ class pgbouncer:
         psql = 'psql -h %s -p %s -U %s %s -c "PAUSE %s;"' \
                % (self.host, self.port, self.user, self.dbname, dbname)
 
-        if VERBOSE:
-            print psql
-
-        out  = os.popen(psql)
-        line = 'stupid init value'
-        while line != '':
-            line = out.readline()[:-1]
-
-        returncode = out.close()
-
-        if returncode and returncode != 0:
-            raise Exception, line
+        return utils.run_command(psql)
 
     def resume(self, dbname):
         """ resume given database """
@@ -187,18 +172,7 @@ class pgbouncer:
         psql = '/usr/bin/psql -h %s -p %s -U %s %s -c "RESUME %s;"' \
                % (self.host, self.port, self.user, self.dbname, dbname)
 
-        if VERBOSE:
-            print psql
-
-        out  = os.popen(psql)
-        line = 'stupid init value'
-        while line != '':
-            line = out.readline()[:-1]
-
-        returncode = out.close()
-
-        if returncode and returncode != 0:
-            raise Exception, line        
+        return utils.run_command(psql)
 
 if __name__ == '__main__':
     p = pgbouncer('/etc/pgbouncer/pgbouncer.ini',

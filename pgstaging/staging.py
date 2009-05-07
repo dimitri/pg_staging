@@ -4,11 +4,11 @@
 
 import os, httplib, time
 
-from options import NotYetImplementedException
-from options import CouldNotGetDumpException
-from options import PGRestoreFailedException
-from options import SubprocessException
-import pgbouncer, restore, londiste
+import pgbouncer, restore, londiste, utils
+from utils import NotYetImplementedException
+from utils import CouldNotGetDumpException
+from utils import PGRestoreFailedException
+from utils import SubprocessException
 
 class Staging:
     """ Staging Object relates to a database name, where to find the backups
@@ -235,7 +235,7 @@ class Staging:
 
         if self.replication:
             l = londiste.londiste(self.replication, self.section,
-                                  self.dbname, self.dated_dbname)
+                                  self.dbname, self.dated_dbname, self.tmpdir)
 
             return l.get_nodata_tables()
         
@@ -438,46 +438,18 @@ class Staging:
 
     def pgbouncer_update_conf(self, newconffile):
         """ reconfigure targeted pgbouncer with given file """
-        import os.path, subprocess
+        import os.path
         from options import VERBOSE, TERSE, CLIENT_SCRIPT
 
         baseconfdir = os.path.dirname(self.pgbouncer_conf)
 
-        if self.use_sudo:
-            sudo = "sudo"
-        else:
-            sudo = ""
-
-        # commands = [(command line, (return, codes, awaited)), ...]
-        # default retcode is a tuple containing only 0
-        retcode = 0,
-        commands = [
-            ("scp %s %s:/tmp" % (newconffile, self.host), retcode),
-            ("ssh %s %s ./%s %s %s" % (self.host,
-                                       sudo,
-                                       CLIENT_SCRIPT,
-                                       newconffile,
-                                       self.pgbouncer_port), retcode)
-            ]
-
         # skip scp when target is localhost
-        if self.host in ("localhost", "127.0.0.1"):
-            commands = commands[1:]
-
-        for cmd, returns in commands:
-            if VERBOSE:
-                print cmd
-
-            proc = subprocess.Popen(cmd.split(" "),
-                                    stdout = subprocess.PIPE,
-                                    stderr = subprocess.PIPE)
-
-            out, err = proc.communicate()
-
-            if proc.returncode not in returns:
-                mesg  = 'Error [%d]: %s' % (proc.returncode, cmd)
-                mesg += '\nDetail: %s' % err
-                raise SubprocessException, mesg
+        if self.host not in ("localhost", "127.0.0.1"):
+            utils.scp(self.host, newconffile, '/tmp')
+            
+        utils.run_client_script(self.host,
+                                [newconffile, self.pgbouncer_port],
+                                self.use_sudo)
 
         # if target isn't localhost, rm the local temp file
         # when target host is localhost, we used mv already
