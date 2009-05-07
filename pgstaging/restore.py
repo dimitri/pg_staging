@@ -184,7 +184,6 @@ class pgrestore:
             print " ".join(cmd)
 
         # try to connect with a safe timeout, raise an exception when failing
-        print 'COUCOU'
         self.try_connection()
 
         # mesure pg_restore timing
