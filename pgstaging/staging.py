@@ -600,16 +600,14 @@ class Staging:
             for t, host in l.tickers():
                 filename = t.write()
                 if filename:
-                    t.send(host, filename, self.use_sudo)
+                    t.init_remote(host, filename, self.use_sudo)
                     #t.start(filename)
                     yield t.section, filename
 
             # now the londiste daemons
             for p, host in l.providers():
-                # have the londiste setup written then send it and run the
-                # daemon
                 filename = l.write(p)
-                l.send(p, host, filename, self.use_sudo)
+                l.init_remote(p, host, filename, self.use_sudo)
                 #l.start(p, filename)
                 
                 yield p, filename

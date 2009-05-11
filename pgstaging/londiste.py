@@ -16,6 +16,7 @@ class londiste:
         self.section  = section
         self.dbname   = dbname
         self.instance = dbname_instance
+        self.dbdate   = self.instance.split('_')[-1]
         self.tmpdir   = "%s/%s" % (tmpdir, self.section)
 
         if clean:
@@ -121,22 +122,27 @@ class londiste:
             conf = self.prepare_config(provider)
 
         basename = conf.get('londiste', 'pgq_queue_name').replace('_', '-')
-        filename = "%s/%s.ini" % (self.tmpdir, basename)
+        filename = "%s/%s.%s.ini" % (self.tmpdir, basename, self.dbdate)
         fd = open(filename, "wb")
         conf.write(fd)
         fd.close()
 
         return filename
 
-    def send(self, provider, host, filename, use_sudo):
+    def init_remote(self, provider, host, filename, use_sudo):
         """ send the londiste file for provider to the remote host """
+        from options import VERBOSE
+        
         utils.scp(host, filename, '/tmp')
 
         remote_filename = os.path.basename(filename)
         tables = self.config.get(provider, 'provides').split(' ')
-        utils.run_client_script(host,
-                                ['init-londiste', remote_filename, tables],
-                                use_sudo)
+        args   = ['init-londiste', provider, remote_filename] + tables
+        out    = utils.run_client_script(host, args, use_sudo)
+
+        if VERBOSE:
+            print out
+        
         return
 
     def start(self, provider, filename):
@@ -173,6 +179,7 @@ class pgqadm:
         self.section  = pgq_section
         self.dbname   = dbname
         self.instance = dbname_instance
+        self.dbdate   = self.instance.split('_')[-1]
         self.tmpdir   = tmpdir
         self.pgqadm   = ConfigParser.SafeConfigParser()
 
@@ -204,7 +211,7 @@ class pgqadm:
             conf = self.prepare_config()
 
         basename = conf.get('pgqadm', 'job_name').replace('_', '-')
-        filename = "%s/ticker.%s.ini" % (self.tmpdir, basename)
+        filename = "%s/ticker.%s.%s.ini" % (self.tmpdir, basename, self.dbdate)
 
         if os.path.exists(filename):
             return None
@@ -218,14 +225,20 @@ class pgqadm:
 
         return filename
 
-    def send(self, host, filename, use_sudo):
+    def init_remote(self, host, filename, use_sudo):
         """ send the pgqadm file to the remote host """
+        from options import VERBOSE
+        
         utils.scp(host, filename, '/tmp')
         remote_filename = os.path.basename(filename)
 
-        out, err = utils.run_client_script(host,
-                                           ['init-pgq', remote_filename],
-                                           use_sudo)
+        args = ['init-pgq', remote_filename]
+        out  = utils.run_client_script(host, args, use_sudo)
+
+        if VERBOSE:
+            print out
+
+        return 
 
     def start(self):
         """ start the ticker daemon on remote host """

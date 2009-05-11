@@ -28,44 +28,53 @@ function pgbouncer() {
 }
 
 function init_londiste() {
-    # $1 ini file
-    # $2 .. $N list of schema-qualified table names to add to replication
-    echo 'init londiste $1'
-    echo 'provider add'
-    echo 'subscriber add'
+    # $1 provider
+    # $2 ini file
+    # $3 .. $N list of schema-qualified table names to add to replication
+
+    # replication setups go into /home/pgstaging/londiste
+    mkdir -p ~/londiste/$1
+    mv /tmp/$2 ~/londiste/$1/
+
+    echo "londiste.py ~/londiste/$1/$2 provider install"
+    echo "londiste.py ~/londiste/$1/$2 subscriber install"
+    echo "londiste.py ~/londiste/$1/$2 provider add $3 ..."
+    echo "londiste.py ~/londiste/$1/$2 subscriber add $3 ..."
 }
 
 function run_londiste() {
-    echo "londiste.py $1 replay -d"
+    echo "londiste.py ~/londiste/$1 replay -d"
 }
 
 function init_pgq() {
-    echo 'init pgq $1'
+    # $1 ini file
+    mkdir -p ~/londiste
+    mv /tmp/$1 ~/londiste
+
+    echo "pgqadm.py ~/londiste/$1 install"
 }
 
 function ticker() {
-    echo "pgqadm.py $1 ticker -d"
+    echo "pgqadm.py ~/londiste/$1 ticker -d"
 }
 
-case $1 in
+command=$1
+shift
+
+case $command in
     "pgbouncer")
-	shift
 	pgbouncer $*;;
 
     "init-londiste")
-	shift
 	init_londiste $*;;
 
     "run-londiste")
-	shift
 	run_londiste $*;;
 
     "init-pgq")
-	shift
 	init_pgq $*;;
 
     "ticker")
-	shift
 	ticker $*;;
 
     *)
