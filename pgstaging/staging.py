@@ -602,7 +602,7 @@ class Staging:
 
             r.set_database_search_path(self.search_path)
 
-    def init_londiste(self):
+    def prepare_then_run_londiste(self):
         """ prepare .ini files for all concerned providers """
         if self.replication:
             l = londiste.londiste(self.replication, self.section,
@@ -613,15 +613,13 @@ class Staging:
             for t, host in l.tickers():
                 filename = t.write()
                 if filename:
-                    t.init_remote(host, filename, self.use_sudo)
-                    #t.start(filename)
+                    t.start(host, filename, self.use_sudo)
                     yield t.section, filename
 
             # now the londiste daemons
             for p, host in l.providers():
                 filename = l.write(p)
-                l.init_remote(p, host, filename, self.use_sudo)
-                #l.start(p, filename)
+                l.start(p, host, filename, self.use_sudo)
                 
                 yield p, filename
                 

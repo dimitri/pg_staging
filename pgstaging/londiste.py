@@ -143,11 +143,22 @@ class londiste:
         if VERBOSE:
             print out
         
-        return
+        return remote_filename
 
-    def start(self, provider, filename):
-        """ starts the replication daemons """
-        raise NotYetImplementedException, "try later"
+    def start(self, provider, host, filename, use_sudo, init = True):
+        """ start the ticker daemon on remote host """
+        from options import VERBOSE
+
+        if init:
+            filename = self.init_remote(provider, host, filename, use_sudo)
+
+        args = ['replay', provider, filename]
+        out  = utils.run_client_script(host, args, use_sudo)
+
+        if VERBOSE:
+            print out
+
+        return 
 
     def clean(self, ignore = False):
         """ rm -rf self.tmpdir """
@@ -238,8 +249,20 @@ class pgqadm:
         if VERBOSE:
             print out
 
-        return 
+        return remote_filename
 
-    def start(self):
+    def start(self, host, filename, use_sudo, init = True):
         """ start the ticker daemon on remote host """
-        raise NotYetImplementedException, "try later"
+        from options import VERBOSE
+
+        if init:
+            filename = self.init_remote(host, filename, use_sudo)
+
+        args = ['ticker', filename]
+        out  = utils.run_client_script(host, args, use_sudo)
+
+        if VERBOSE:
+            print out
+
+        return 
+        

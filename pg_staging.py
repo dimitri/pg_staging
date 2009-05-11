@@ -13,6 +13,7 @@ from pgstaging.utils import WrongNumberOfArgumentsException
 from pgstaging.utils import UnknownBackupDateException
 from pgstaging.utils import NoArgsCommandLineException
 from pgstaging.utils import StagingRuntimeException
+from pgstaging.utils import UnknownCommandException
 
 from pgstaging.staging import Staging
 
@@ -144,7 +145,7 @@ if __name__ == '__main__':
 
     try:
         commands.run_command(conffile, command, args)
-    except StagingRuntimeException, e:
+    except (StagingRuntimeException, UnknownCommandException), e:
         sys.exit(1)
     except Exception, e:
         raise

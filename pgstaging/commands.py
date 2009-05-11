@@ -8,7 +8,7 @@ from utils import WrongNumberOfArgumentsException
 from utils import UnknownSectionException
 from utils import UnknownOptionException
 from utils import StagingRuntimeException
-from utils import UnknownOptionException
+from utils import UnknownCommandException
 
 # cache
 config = None
@@ -471,16 +471,18 @@ def list_nodata_tables(conffile, args):
     for t in staging.get_nodata_tables():
         print t
 
-def prepare_londiste_ini_files(conffile, args):
+def prepare_then_run_londiste(conffile, args):
     """ prepare londiste files for providers of given dbname section """
+    import os.path
+    
     usage = "init_londiste <dbname> [date]"    
     dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
 
     # now load configuration and restore
     staging = parse_config(conffile, dbname)
     staging.set_backup_date(backup_date)
-    for provider, filename in staging.init_londiste():
-        print "%25s: %s" % (provider, filename)
+    for provider, filename in staging.prepare_then_run_londiste():
+        print "%25s: %s" % (provider, os.path.basename(filename))
 
 def get_config_option(conffile, args):
     """ <dbname> <option> print the current value of [dbname] option """
@@ -544,7 +546,7 @@ exports = {
     "resume":    resume_pgbouncer_database,
 
     # londiste
-    "init-londiste": prepare_londiste_ini_files,
+    "londiste": prepare_then_run_londiste,
 
     # configuration file
     "get":       get_config_option,

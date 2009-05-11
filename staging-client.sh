@@ -32,18 +32,25 @@ function init_londiste() {
     # $2 ini file
     # $3 .. $N list of schema-qualified table names to add to replication
 
-    # replication setups go into /home/pgstaging/londiste
-    mkdir -p ~/londiste/$1
-    mv /tmp/$2 ~/londiste/$1/
+    provider=$1
+    ini=$2
+    shift; shift; # now $* is the list of tables to consider
 
-    echo "londiste.py ~/londiste/$1/$2 provider install"
-    echo "londiste.py ~/londiste/$1/$2 subscriber install"
-    echo "londiste.py ~/londiste/$1/$2 provider add $3 ..."
-    echo "londiste.py ~/londiste/$1/$2 subscriber add $3 ..."
+    # replication setups go into /home/pgstaging/londiste
+    mkdir -p ~/londiste/$provider
+    mv /tmp/$ini ~/londiste/$provider/
+
+    londiste.py ~/londiste/$provider/$ini provider install
+    londiste.py ~/londiste/$provider/$ini subscriber install
+
+    londiste.py ~/londiste/$provider/$ini provider add $*
+    londiste.py ~/londiste/$provider/$ini provider add $*
 }
 
-function run_londiste() {
-    echo "londiste.py ~/londiste/$1 replay -d"
+function replay() {
+    # $1 provider
+    # $2 ini file
+    londiste.py ~/londiste/$1/$2 replay -d
 }
 
 function init_pgq() {
@@ -51,11 +58,11 @@ function init_pgq() {
     mkdir -p ~/londiste
     mv /tmp/$1 ~/londiste
 
-    echo "pgqadm.py ~/londiste/$1 install"
+    pgqadm.py ~/londiste/$1 install
 }
 
 function ticker() {
-    echo "pgqadm.py ~/londiste/$1 ticker -d"
+    pgqadm.py ~/londiste/$1 ticker -d
 }
 
 command=$1
@@ -68,8 +75,8 @@ case $command in
     "init-londiste")
 	init_londiste $*;;
 
-    "run-londiste")
-	run_londiste $*;;
+    "replay")
+	replay $*;;
 
     "init-pgq")
 	init_pgq $*;;
