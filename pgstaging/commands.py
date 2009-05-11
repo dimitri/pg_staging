@@ -1,9 +1,12 @@
 ##
 ## Commands available both in command line or in console
 ##
-import ConfigParser
+import os, os.path, ConfigParser
+
+import utils
 from staging import Staging
 from options import VERBOSE, DRY_RUN
+
 from utils import WrongNumberOfArgumentsException
 from utils import UnknownSectionException
 from utils import UnknownOptionException
@@ -105,6 +108,19 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
 
             if staging.tmpdir is None:
                 staging.tmpdir = DEFAULT_TMPDIR
+
+            # SQL PATH
+            sql_path = None
+
+            if config.has_option(dbname, "sql_path"):
+                sql_path = config.get(dbname, "sql_path")
+            
+            if sql_path:
+                # be nice, expand ~
+                sql_path = os.path.join(os.path.expanduser(sql_path), dbname)
+
+                if os.path.isdir(sql_path):
+                    staging.sql_path = sql_path
             
         except Exception, e:
             print >>sys.stderr, "Configuration error: %s" % e
@@ -232,6 +248,30 @@ def fetch_dump(conffile, args):
     staging.get_dump()
 
     print "  timing", duration_pprint(staging.wget_timing)
+
+def pre_source_extra_files(conffile, args):
+    """ <dbname> [date] """
+    usage = "presql <dbname> [date]"
+
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
+
+    # now load configuration and source extra sql files
+    staging = parse_config(conffile, dbname)
+    staging.set_backup_date(backup_date)
+    for sql in staging.psql_source_files(utils.PRE_SQL):
+        print "psql -f %s" % sql
+
+def post_source_extra_files(conffile, args):
+    """ <dbname> [date] """
+    usage = "postsql <dbname> [date]"
+
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
+
+    # now load configuration and source extra sql files
+    staging = parse_config(conffile, dbname)
+    staging.set_backup_date(backup_date)
+    for sql in staging.psql_source_files(utils.POST_SQL):
+        print "psql -f %s" % sql
 
 def list_databases(conffile, args):
     """ list configured databases """
@@ -415,7 +455,6 @@ def catalog(conffile, args):
     if len(args) > 1:
         filename = args[1]
 
-    import os.path
     if filename is None or not os.path.exists(filename):
         staging.set_backup_date(None)
         filename = staging.get_dump()
@@ -435,7 +474,6 @@ def triggers(conffile, args):
     if len(args) > 1:
         filename = args[1]
 
-    import os.path
     if filename is None or not os.path.exists(filename):
         staging.set_backup_date(None)
         filename = staging.get_dump()
@@ -473,8 +511,6 @@ def list_nodata_tables(conffile, args):
 
 def prepare_then_run_londiste(conffile, args):
     """ prepare londiste files for providers of given dbname section """
-    import os.path
-    
     usage = "init_londiste <dbname> [date]"    
     dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
 
@@ -530,6 +566,8 @@ exports = {
     "switch":    switch,
     "load":      restore_from_dump,
     "fetch":     fetch_dump,
+    "presql":    pre_source_extra_files,
+    "postsql":   post_source_extra_files,
 
     # listing
     "databases":   list_databases,

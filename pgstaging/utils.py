@@ -6,6 +6,9 @@ RET_OUT  = 1
 RET_ERR  = 2
 RET_BOTH = 4
 
+PRE_SQL  = -1
+POST_SQL =  1
+
 def run_command(command,
                 expected_retcodes = 0, returning = RET_CODE, stdin = None):
     """run a command and raise an exception if retcode not in expected_retcode"""

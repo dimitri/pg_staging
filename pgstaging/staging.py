@@ -62,6 +62,7 @@ class Staging:
         self.pg_restore_st   = pg_restore_st == "True"
         self.replication     = None
         self.tmpdir          = tmpdir
+        self.sql_path        = None
 
         self.schemas         = []
         self.schemas_nodata  = []
@@ -304,6 +305,11 @@ class Staging:
         # it could be that the restore will be connected to pgbouncer
         self.pgbouncer_add_database()
 
+        # source the extra SQL files (generator function)
+        for sql in self.psql_source_files(utils.PRE_SQL):
+            if VERBOSE:
+                print "psql -f %s" % sql
+
         # now, download the dump we need.
         filename = self.get_dump()
 
@@ -330,6 +336,11 @@ class Staging:
 
         # remove the dump even when there was no exception
         self.do_remove_dump(filename)
+
+        # source the extra SQL files
+        for sql in self.psql_source_files(utils.POST_SQL):
+            if VERBOSE:
+                print "psql -f %s" % sql
 
         return self.wget_timing, secs
 
@@ -537,7 +548,53 @@ class Staging:
                               self.postgres_major,
                               self.pg_restore)
 
-        return r.psql_connect()
+        # no file name to psql_source_file means sys.stdin
+        return r.psql_source_file()
+
+    def psql_source_files(self, phase):
+        """ connect to the given database and run some scripts """
+        from options import VERBOSE, TERSE
+        if not self.sql_path:
+            if not TERSE:
+                print "There's no custom SQL file to load"
+            return
+
+        if phase == utils.POST_SQL:
+            sql_path = os.path.join(self.sql_path, 'post')
+            
+        elif phase == utils.PRE_SQL:
+            sql_path = os.path.join(self.sql_path, 'pre')
+
+        else:
+            raise Exception, "INTERNAL: psql_source_files is given unknown phase"
+
+        if not os.path.isdir(sql_path):
+            if VERBOSE:
+                print "skipping '%s' which is not a directory" % sql_path
+            return
+        
+        r = restore.pgrestore(self.dbname,
+                              self.dbuser,
+                              self.host,
+                              self.pgbouncer_port,
+                              self.dbowner,
+                              self.maintdb,
+                              self.postgres_major,
+                              self.pg_restore)
+
+        filenames = [x
+                     for x in os.listdir(sql_path)
+                     if len(x) > 4 and x[-4:] == '.sql']
+        filenames.sort()
+
+        for filename in filenames:
+            yield filename
+            out = r.psql_source_file(os.path.join(sql_path, filename))
+
+            if VERBOSE:
+                print out
+
+        return 
 
     def show(self, setting):
         """ return setting value """
@@ -624,3 +681,4 @@ class Staging:
                 yield p, filename
                 
         return
+

@@ -5,6 +5,7 @@
 import os, psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
+import utils
 from utils import NotYetImplementedException
 from utils import CouldNotConnectPostgreSQLException
 from utils import CreatedbFailedException
@@ -187,7 +188,7 @@ class pgrestore:
         self.try_connection()
 
         # mesure pg_restore timing
-        import time, utils
+        import time
         start_time = time.time()
 
         # utils.run_command will raise a SubprocessException if pg_restore
@@ -543,18 +544,24 @@ class pgrestore:
                 print e
             raise
 
-    def psql_connect(self):
+    def psql_source_file(self, filename = None):
         """ launch psql and connect to given database """
         import sys, subprocess, shlex
         from options import VERBOSE
 
-        cmd = "%s -U %s -h %s -p %d %s" \
+        if filename:
+            dash_f = " -f %s " % filename
+        else:
+            dash_f = ""
+
+        cmd = "%s %s -U %s -h %s -p %d %s" \
               % (self.restore_cmd.replace('pg_restore', 'psql'),
-                 self.user, self.host, self.port, self.dbname)
+                 dash_f, self.user, self.host, self.port, self.dbname)
 
         if VERBOSE:
             print cmd
 
-        return os.system(cmd)
-
-        
+        if filename is None:
+            return os.system(cmd)
+        else:
+            return utils.run_command(cmd, returning = utils.RET_OUT)

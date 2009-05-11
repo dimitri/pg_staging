@@ -125,6 +125,15 @@ tmpdir::
 	Directory where to fetch backup files, defaults to +/tmp+. Command
 	line argument +-t+ will override +.ini+ setting.
 
+sql_path::
+
+	Directory where to dispose +SQL+ files to be sourced with the +psql+
+	utility, in alphabetical order. This directory may contain a +pre+
+	and a +post+ subdirectories containing files following the shell
+	+*.sql+ global pattern. No subdirectory of +pre+ and +post+ will get
+	walked into. The name of the section using the files will always get
+	expanded to the given +sql_path+.
+
 schemas::
 
 	List of schema (comma separated) to restore. If present, any schema
