@@ -526,6 +526,19 @@ class Staging:
 
         return r.pg_size_pretty(size)
 
+    def psql_connect(self):
+        """ connect to the given database """
+        r = restore.pgrestore(self.dbname,
+                              self.dbuser,
+                              self.host,
+                              self.pgbouncer_port,
+                              self.dbowner,
+                              self.maintdb,
+                              self.postgres_major,
+                              self.pg_restore)
+
+        return r.psql_connect()
+
     def show(self, setting):
         """ return setting value """
         r = restore.pgrestore(self.dbname,

@@ -542,3 +542,19 @@ class pgrestore:
             if VERBOSE:
                 print e
             raise
+
+    def psql_connect(self):
+        """ launch psql and connect to given database """
+        import sys, subprocess, shlex
+        from options import VERBOSE
+
+        cmd = "%s -U %s -h %s -p %d %s" \
+              % (self.restore_cmd.replace('pg_restore', 'psql'),
+                 self.user, self.host, self.port, self.dbname)
+
+        if VERBOSE:
+            print cmd
+
+        return os.system(cmd)
+
+        

@@ -257,6 +257,15 @@ def list_backups(conffile, args):
     for backup, size in staging.list_backups():
         print "%6s %s " % (size, backup)
 
+def psql_connect(conffile, args):
+    """ launch a psql connection to the given configured section """
+    usage = "psql <dbname> [date]"
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
+
+    staging = parse_config(conffile, dbname)
+    staging.set_backup_date(backup_date)
+    return staging.psql_connect()
+
 def show_setting(conffile, args):
     """ show given database setting current value """
     usage = "show <dbname> [date] <setting>"
@@ -525,6 +534,7 @@ exports = {
     "backups":     list_backups,
     "dbsize":      show_dbsize,
     "dbsizes":     show_all_dbsizes,
+    "psql":        psql_connect,
     "show":        show_setting,
     "search_path": set_database_search_path,
 
