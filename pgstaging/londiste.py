@@ -209,9 +209,9 @@ class pgqadm:
         ini.set('pgqadm', 'use_skylog', '0')
         ini.set('pgqadm', 'connection_lifetime', '21')
         ini.set('pgqadm', 'pidfile',
-                '/var/log/londiste/%(job_name)s.' + '%s.pid' % self.dbdate)
-        ini.set('pgqadm', 'logfile',
                 '/var/run/londiste/%(job_name)s.' + '%s.pid' % self.dbdate)
+        ini.set('pgqadm', 'logfile',
+                '/var/log/londiste/%(job_name)s.' + '%s.pid' % self.dbdate)
 
         db = self.config.get(self.section, 'db')
         ini.set('pgqadm', 'db', db.replace(self.dbname, self.instance))
