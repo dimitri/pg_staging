@@ -100,10 +100,10 @@ class londiste:
                 self.config.get(provider, 'pgq_queue_name'))
         ini.set('londiste', 'pgq_lazy_fetch',
                 self.config.defaults()['pgq_lazy_fetch'])
-        ini.set('londiste',
-                'pidfile', '/var/run/londiste/%(job_name)s.%s.pid' % self.dbdate)
-        ini.set('londiste',
-                'logfile', '/var/log/londiste/%(job_name)s.%s.pid' % self.dbdate)
+        ini.set('londiste', 'pidfile',
+                '/var/run/londiste/%(job_name)s.' + '%s.pid' % self.dbdate)
+        ini.set('londiste', 'logfile',
+                '/var/log/londiste/%(job_name)s.' + '%s.pid' % self.dbdate)
         ini.set('londiste', 'loop_delay', '1.0')
         ini.set('londiste', 'connection_lifetime', '30')
 
@@ -208,10 +208,10 @@ class pgqadm:
         ini.set('pgqadm', 'loop_delay', '1.0')
         ini.set('pgqadm', 'use_skylog', '0')
         ini.set('pgqadm', 'connection_lifetime', '21')
-        ini.set('pgqadm',
-                'pidfile', '/var/log/londiste/%(job_name)s.%s.pid' % self.dbdate)
-        ini.set('pgqadm',
-                'logfile', '/var/run/londiste/%(job_name)s.%s.pid' % self.dbdate)
+        ini.set('pgqadm', 'pidfile',
+                '/var/log/londiste/%(job_name)s.' + '%s.pid' % self.dbdate)
+        ini.set('pgqadm', 'logfile',
+                '/var/run/londiste/%(job_name)s.' + '%s.pid' % self.dbdate)
 
         db = self.config.get(self.section, 'db')
         ini.set('pgqadm', 'db', db.replace(self.dbname, self.instance))
