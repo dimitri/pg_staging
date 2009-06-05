@@ -176,7 +176,7 @@ class pgrestore:
                "-p", str(self.port),
                "-U", self.user,
                "-d", self.dbname,
-               "-L ", catalog,
+               "-L", catalog,
                filename
                ]
         cmd = [x for x in cmd if x is not None and x != '']
