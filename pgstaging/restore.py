@@ -166,7 +166,7 @@ class pgrestore:
         # Exclude some schemas at restore time?
         catalog = ""
         if self.schemas or self.schemas_nodata:
-            catalog = "-L %s" % self.get_catalog(filename,
+            catalog = "%s" % self.get_catalog(filename,
                                                  excluding_tables,
                                                  out_to_file = True)
 
@@ -176,7 +176,7 @@ class pgrestore:
                "-p", str(self.port),
                "-U", self.user,
                "-d", self.dbname,
-               catalog,
+               "-L ", catalog,
                filename
                ]
         cmd = [x for x in cmd if x is not None and x != '']
