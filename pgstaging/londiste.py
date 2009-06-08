@@ -80,6 +80,12 @@ class londiste:
         for s in self.subscribers():
             p = set(self.config.get(s, 'provides').split(' '))
             tables = tables.union(p)
+
+            # check that tables are all schema qualified
+            for t in tables:
+                if len(t) < 4 or t.find('.') == -1:
+                    mesg = "malformed table name in section %s: '%s'" % (s, t)
+                    raise Exception, mesg
             
         return tables
 
