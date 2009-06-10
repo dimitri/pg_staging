@@ -21,6 +21,8 @@ the provider rows to +DELETE+ and +DELETE+ them.
 
 * londiste replication: subscriber tables / provider tables / pgqadm status
 
+* staging-client.sh: add support for stopping londiste/tickers daemons
+
 * debian packaging
 
 * +keep_bases+ implementation
