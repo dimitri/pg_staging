@@ -224,7 +224,7 @@ class pgqadm:
         ini.set('pgqadm', 'use_skylog', '0')
         ini.set('pgqadm', 'connection_lifetime', '21')
         ini.set('pgqadm', 'pidfile',
-                '/var/run/londiste/%(job_name)s.' + '%s.pid' % self.dbdate)
+                '/var/run/londiste/ticker.%(job_name)s.' + '%s.pid'%self.dbdate)
         ini.set('pgqadm', 'logfile',
                 '/var/log/londiste/%(job_name)s.' + '%s.log' % self.dbdate)
 
