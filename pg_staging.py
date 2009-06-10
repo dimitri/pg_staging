@@ -126,7 +126,16 @@ if __name__ == '__main__':
             from pgstaging.console import Console
             c = Console()
             c.set_config(str(conffile), recheck = False)
-            c.cmdloop()
+
+            loop = True
+            while loop:
+                try:
+                    loop = False
+                    c.cmdloop()
+                except KeyboardInterrupt:
+                    # don't redisplay the intro please
+                    c.intro = '\n^C'
+                    loop = True
 
             # exiting the console also exit main program
             sys.exit(0)
