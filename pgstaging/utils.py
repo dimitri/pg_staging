@@ -35,6 +35,10 @@ def run_command(command,
     if proc.returncode not in expected_retcodes:
         if DEBUG:
             print out
+
+        # when nothing gets to stderr, add stdout to Detail
+        if err.strip() == '':
+            err = out
         
         mesg  = 'Error [%d]: %s' % (proc.returncode, command)
         mesg += '\nDetail: %s' % err
