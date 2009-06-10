@@ -29,18 +29,6 @@ class Console(cmd.Cmd):
         if VERBOSE:
             print "Console history file is: %s" % self.histfile
 
-    def init_hist(self):
-        """ manage history in a persistent file """
-        if not os.path.exists(self.histfile):
-            h = open(self.histfile, "wb")
-            h.close()
-        else:
-            for line in open(self.histfile, "rb"):
-                line = line.strip('\n')
-                if line == 'EOF':
-                    continue
-                self._hist.append(line)
-
     ## Command definitions ##
     def do_hist(self, args):
         """Print a list of commands that have been entered"""
@@ -136,8 +124,9 @@ class Console(cmd.Cmd):
             before execution (for example, variable substitution) do it here.
         """
         l = line.strip()
-        if l != '' and self._hist[-1] != l:
-            self._hist += [ l ]
+        if l != '' and l != 'EOF':
+            if len(self._hist) > 1 and self._hist[-1] != l:
+                self._hist += [ l ]
         return line
 
     def postcmd(self, stop, line):
