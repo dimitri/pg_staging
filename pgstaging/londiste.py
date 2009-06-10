@@ -64,8 +64,14 @@ class londiste:
                 mesg = "Replication Section '%s' has no 'job_name' option" % t
                 raise UnknownOptionException, mesg
 
+            if not self.config.has_option(t, 'host'):
+                mesg = "Replication Section '%s' has no 'host' option" % t
+                raise UnknownOptionException, mesg
+
             pgq = pgqadm(self.config, t, self.dbname, self.instance, self.tmpdir)
-            yield pgq, host
+
+            # the host we return is the host where to run the ticker
+            yield pgq, self.config.get(t, 'host')
         return
 
     def job_name(self, provider):
@@ -112,7 +118,7 @@ class londiste:
         ini.set('londiste', 'pidfile',
                 '/var/run/londiste/%(job_name)s.' + '%s.pid' % self.dbdate)
         ini.set('londiste', 'logfile',
-                '/var/log/londiste/%(job_name)s.' + '%s.pid' % self.dbdate)
+                '/var/log/londiste/%(job_name)s.' + '%s.log' % self.dbdate)
         ini.set('londiste', 'loop_delay', '1.0')
         ini.set('londiste', 'connection_lifetime', '30')
 
@@ -220,7 +226,7 @@ class pgqadm:
         ini.set('pgqadm', 'pidfile',
                 '/var/run/londiste/%(job_name)s.' + '%s.pid' % self.dbdate)
         ini.set('pgqadm', 'logfile',
-                '/var/log/londiste/%(job_name)s.' + '%s.pid' % self.dbdate)
+                '/var/log/londiste/%(job_name)s.' + '%s.log' % self.dbdate)
 
         db = self.config.get(self.section, 'db')
         ini.set('pgqadm', 'db', db.replace(self.dbname, self.instance))
