@@ -8,16 +8,38 @@
 ## Location: http://www.eskimo.com/~jet/python/examples/cmd/
 ## Copyright (c) 2004, James Thiele
 
-import os, cmd, readline, sys
+import os, os.path, cmd, readline, sys, ConfigParser
 import options, commands
+
+from options import CONSOLE_HISTORY, CONSOLE_HISTORY_LEN
 
 class Console(cmd.Cmd):
 
     def __init__(self):
+        """ pg_staging console """
+        from options import VERBOSE
         cmd.Cmd.__init__(self)
+        
         self.prompt = "pg_staging> "
         self.intro  = "Welcome to pg_staging %s." % options.VERSION        
         self.conffile = None
+        self.config   = None
+
+        self.histfile = os.path.expanduser(CONSOLE_HISTORY)
+        if VERBOSE:
+            print "Console history file is: %s" % self.histfile
+
+    def init_hist(self):
+        """ manage history in a persistent file """
+        if not os.path.exists(self.histfile):
+            h = open(self.histfile, "wb")
+            h.close()
+        else:
+            for line in open(self.histfile, "rb"):
+                line = line.strip('\n')
+                if line == 'EOF':
+                    continue
+                self._hist.append(line)
 
     ## Command definitions ##
     def do_hist(self, args):
@@ -26,6 +48,7 @@ class Console(cmd.Cmd):
 
     def do_exit(self, args):
         """Exits from the console"""
+        readline.write_history_file(self.histfile)
         return -1
 
     ## Command definitions to support Cmd object functionality ##
@@ -82,7 +105,8 @@ class Console(cmd.Cmd):
         """
         ## The only reason to define this method is for the help text in the
         ## doc string
-        cmd.Cmd.do_help(self, args)
+        #cmd.Cmd.do_help(self, args)
+        commands.list_commands(self.conffile, args.split(' '))
 
     ## Override methods in Cmd object ##
     def preloop(self):
@@ -90,9 +114,14 @@ class Console(cmd.Cmd):
            Despite the claims in the Cmd documentaion, Cmd.preloop() is not a stub.
         """
         cmd.Cmd.preloop(self)   ## sets up command completion
-        self._hist    = []      ## No history yet
+        self._hist    = []
         self._locals  = {}      ## Initialize execution namespace for user
         self._globals = {}
+
+        try:
+            readline.read_history_file(self.histfile)
+        except IOError:
+            pass
 
     def postloop(self):
         """Take care of any unfinished business.
@@ -106,7 +135,9 @@ class Console(cmd.Cmd):
             it has been interpreted. If you want to modifdy the input line
             before execution (for example, variable substitution) do it here.
         """
-        self._hist += [ line.strip() ]
+        l = line.strip()
+        if l != '' and self._hist[-1] != l:
+            self._hist += [ l ]
         return line
 
     def postcmd(self, stop, line):
@@ -159,6 +190,27 @@ class Console(cmd.Cmd):
         self.conffile = conffile
         if VERBOSE:
             print "Configuration file is:", self.conffile
+
+        self.config = ConfigParser.SafeConfigParser()
+        try:
+            self.config.read(conffile)
+        except Exception, e:
+            print >>sys.stderr, "Parse Error: '%s'" % conffile
+            print >>sys.stderr, e
+            raise
+
+    def get_names(self):
+        """ we override the cmd one in order to add our commands """
+        return cmd.Cmd.get_names(self) + ['do_'+x for x in commands.exports]
+
+    def completedefault(text, line, begidx, endidx):
+        """ complete arguments for current command """
+        print 'PHOQUE', text, line
+        return [x for x in self.config.sections() if x.find(text) == 0]
+
+    def complete_restore(text, line, begidx, endidx):
+        print "PHOQUE"
+        return []
 
 if __name__ == '__main__':
         console = Console()

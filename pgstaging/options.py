@@ -18,3 +18,7 @@ CLIENT_SCRIPT       = "staging-client.sh"
 
 # when using cat file.pgs | pg_staging.py
 COMMENT             = "#"
+
+# where to store the pg_staging console history
+CONSOLE_HISTORY     = "~/.pg_staging_history"
+CONSOLE_HISTORY_LEN = 500
