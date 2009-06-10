@@ -79,7 +79,10 @@ class londiste:
 
         for s in self.subscribers():
             p = set(self.config.get(s, 'provides').split(' '))
-            tables = tables.union(p)
+            # p could contain table\ntable, split on \n now
+            for entry in p:
+                for e in entry.split('\n'):
+                    tables = tables.union([e])
 
             # check that tables are all schema qualified
             for t in tables:

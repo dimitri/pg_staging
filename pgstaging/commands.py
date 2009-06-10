@@ -507,7 +507,7 @@ def list_nodata_tables(conffile, args):
     staging = parse_config(conffile, dbname)
     staging.set_backup_date(backup_date)
     for t in staging.get_nodata_tables():
-        print t
+        print '%s' % t
 
 def prepare_then_run_londiste(conffile, args):
     """ prepare londiste files for providers of given dbname section """
