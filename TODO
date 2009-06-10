@@ -19,6 +19,8 @@ initial COPY step is bound to fail. pg_staging should drop the FKs itself
 first, have londiste COPY the data, then issue a +SELECT+ query to get
 the provider rows to +DELETE+ and +DELETE+ them.
 
+* londiste replication: subscriber tables / provider tables / pgqadm status
+
 * debian packaging
 
 * +keep_bases+ implementation
