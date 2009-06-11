@@ -163,6 +163,15 @@ class pgrestore:
                 print "Notice: pg_restore will work in a single transaction"
             st = "-1"
 
+        # prepare cmd in several steps
+        cmd = [self.restore_cmd,
+               st,
+               "-h", self.host,
+               "-p", str(self.port),
+               "-U", self.user,
+               "-d", self.dbname
+               ]
+
         # Exclude some schemas at restore time?
         catalog = ""
         if self.schemas or self.schemas_nodata:
@@ -170,15 +179,12 @@ class pgrestore:
                                                  excluding_tables,
                                                  out_to_file = True)
 
-        cmd = [self.restore_cmd,
-               st,
-               "-h", self.host,
-               "-p", str(self.port),
-               "-U", self.user,
-               "-d", self.dbname,
-               "-L", catalog,
-               filename
-               ]
+            cmd += ["-L", catalog]
+
+        cmd += [filename]
+
+        # now filter out empty array elements in order to prepare a command
+        # without extra spacing
         cmd = [x for x in cmd if x is not None and x != '']
 
         if not TERSE:
