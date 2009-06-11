@@ -87,21 +87,21 @@ class londiste:
 
     def clean_provides(self, value):
         """ return a well formatted list of tables from the ConfigParser value"""
-        s = set()
+        t = []
         l = value.split('\n')
 
         # l could contain table\ntable, split on \n now
         for entry in l:
             for e in entry.split(' '):
-                s = s.union([e])
+                t += [e]
 
         # check that tables are all schema qualified
-        for t in s:
-            if len(t) < 4 or t.find('.') == -1:
-                mesg = "malformed table name in section %s: '%s'" % (s, t)
+        for x in t:
+            if len(x) < 4 or x.find('.') == -1:
+                mesg = "malformed table name: '%s'" % x
                 raise Exception, mesg
 
-        return s
+        return t
 
     def get_nodata_tables(self):
         """ return a list of tables to avoid restoring """
@@ -110,7 +110,7 @@ class londiste:
 
         for s, host in self.subscribers():
             p = self.clean_provides( self.config.get(s, 'provides') )
-            tables = tables.union( p )
+            tables = tables.union( set(p) )
                         
         return tables
 
