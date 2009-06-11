@@ -696,11 +696,13 @@ class Staging:
             raise Exception, "Error: no replication in your setup"
 
         if service == 'pgbouncer':
-            args += [self.pgbouncer_port]
-            out   = utils.run_client_script(self.host, args, self.use_sudo)
+            bargs = [self.pgbouncer_port]
+            out   = utils.run_client_script(self.host, bargs, self.use_sudo)
 
             if (action == 'status' or VERBOSE) and out:
                 print out
+
+            return
 
         if service == 'londiste':
             l = londiste.londiste(self.replication, self.section,
@@ -716,11 +718,13 @@ class Staging:
                     print out
 
             for p, host in l.providers():
-                args += [ p, os.path.basename( l.get_config_filename(p) ) ]
-                out   = utils.run_client_script(host, args, self.use_sudo)
+                pargs = args + [ p, os.path.basename( l.get_config_filename(p) ) ]
+                out   = utils.run_client_script(host, pargs, self.use_sudo)
 
                 if (action == 'status' or VERBOSE) and out:
                     print out
+
+            return
 
         if service == 'ticker':
             l = londiste.londiste(self.replication, self.section,
@@ -728,8 +732,10 @@ class Staging:
                                   self.tmpdir, clean = True)
 
             for t, host in l.tickers():
-                args += [ os.path.basename( t.get_config_filename() ) ]
-                out   = utils.run_client_script(self.host, args, self.use_sudo)
+                targs = args + [ os.path.basename( t.get_config_filename() ) ]
+                out   = utils.run_client_script(self.host, targs, self.use_sudo)
 
                 if (action == 'status' or VERBOSE) and out:
                     print out
+
+        return
