@@ -687,8 +687,8 @@ class Staging:
         """ remotely start/stop/restart/status a service, using CLIENT_SCRIPT """
         from options import VERBOSE
 
-        if VERBOSE:
-            print "control_service:", service, action
+        if service not in ('londiste', 'ticker', 'pgbouncer'):
+            raise Exception, "Error: unknown service '%s'" % service
         
         args = [action, service]
 
@@ -732,6 +732,3 @@ class Staging:
 
                 if (action == 'status' or VERBOSE) and out:
                     print out
-                
-        else:
-            raise Exception, "Error: unknown service '%s'" % service
