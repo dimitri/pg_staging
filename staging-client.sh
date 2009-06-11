@@ -73,6 +73,7 @@ function service() {
 
 		"status")
 		    londiste.py ~/londiste/$provider/$ini subscriber tables
+		    ;;
 
 		*)
 		    echo "Don't know how to $action $service" >&2
@@ -178,5 +179,7 @@ case $command in
 	ticker $*;;
 
     *)
-	echo "unsupported command";;
+	echo "unsupported command" >&2
+	exit 1
+	;;
 esac

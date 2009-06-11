@@ -684,13 +684,13 @@ class Staging:
 
 
     def control_service(self, service, action):
-        """ remotely restart a service, using CLIENT_SCRIPT """
+        """ remotely start/stop/restart/status a service, using CLIENT_SCRIPT """
         from options import VERBOSE
         
         args = [action, service]
 
         if service in ('londiste', 'ticker') and not self.replication:
-            raise Exception, "Replication is switched of in your setup"
+            raise Exception, "Error: no replication in your setup"
 
         if service == 'pgbouncer':
             args += [self.pgbouncer_port]
