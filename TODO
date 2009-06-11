@@ -4,23 +4,6 @@ What's next, doc?
 
 == Important stuff
 
-* londiste replication support
-+
-Auto-install londiste providers/subscribers from +replication.ini+
-configuration file. This file is separated because the same database can act
-both as a provider and a subscriber, or be a provider for more than one
-subscriber, or be a subscriber for more than one providers.
-
-* londiste replication: FK support
-+
-When starting londiste it happens that provider contains fresher data than
-subscriber (autonomous backups), so recreating the Foreign Keys after the
-initial COPY step is bound to fail. pg_staging should drop the FKs itself
-first, have londiste COPY the data, then issue a +SELECT+ query to get
-the provider rows to +DELETE+ and +DELETE+ them.
-
-* londiste replication: subscriber tables / provider tables / pgqadm status
-
 * debian packaging
 
 * +keep_bases+ implementation
