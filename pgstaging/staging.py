@@ -708,7 +708,8 @@ class Staging:
                                   self.tmpdir, clean = True)
 
             for t, host in l.tickers():
-                args += [ os.path.basename( t.get_config_filename() ) ]
+                args  = [ action, 'ticker',
+                          os.path.basename( t.get_config_filename() ) ]
                 out   = utils.run_client_script(host, args, self.use_sudo)
 
                 if (action == 'status' or VERBOSE) and out:
