@@ -147,7 +147,7 @@ class londiste:
 
         if conf is None:
             conf = self.prepare_config(provider)
-        filename = self.get_config_filename(conf)
+        filename = self.get_config_filename(provider, conf)
         
         fd = open(filename, "wb")
         conf.write(fd)
