@@ -27,6 +27,87 @@ function pgbouncer() {
     psql -c "reload;" -U postgres -p $2 pgbouncer
 }
 
+function service() {
+    action=$1
+    service=$2
+
+    case $service in
+	"pgbouncer")
+	    port=$3
+	    case $action in
+		"restart")
+	            # arg is pgbouncer port number
+		    psql -c "shutdown;" -U postgres -p $port pgbouncer 2>/dev/null
+		    /etc/init.d/pgbouncer start
+		    ;;
+
+		"stop")
+		    psql -c "shutdown;" -U postgres -p $port pgbouncer 2>/dev/null
+		    ;;
+
+		"start")
+		    /etc/init.d/pgbouncer start
+		    ;;
+
+		"status")
+		    psql -c "show pools;" -U postgres -p $port pgbouncer
+		    ;;
+
+		*)
+		    echo "Don't know how to $action $service" >&2
+		    exit 1
+		    ;;
+	    esac
+	    ;;
+
+	"londiste")
+	    provider=$3
+	    ini=$4
+	    case $action in
+		"stop")
+		    # arg is londiste configuration file
+		    londiste.py ~/londiste/$provider/$ini -s
+		    sleep 3
+		    londiste.py ~/londiste/$provider/$ini -k
+		    ;;
+
+		"status")
+		    londiste.py ~/londiste/$provider/$ini subscriber tables
+
+		*)
+		    echo "Don't know how to $action $service" >&2
+		    exit 1
+		    ;;
+	    esac
+	    ;;
+
+	"ticker")
+	    ini=$3
+	    case $action in
+		"stop")
+		    pgqadm.py ~/londiste/$ini -s
+		    sleep 3
+		    pgqadm.py ~/londiste/$ini -k
+		    ;;
+
+		"status")
+		    pgqadm.py ~/londiste/$ini status
+		    ;;
+
+		*)
+		    echo "Don't know how to $action $service" >&2
+		    exit 1
+		    ;;
+	    esac
+	    ;;
+
+	*)
+	    echo "Unknown service to restart: $service" >&2
+	    exit 1
+	    ;;
+    esac
+}
+
 function init_londiste() {
     # $1 provider
     # $2 ini file
@@ -71,6 +152,12 @@ shift
 case $command in
     "pgbouncer")
 	pgbouncer $*;;
+
+    "restart")
+	service 'restart' $*;;
+
+    "stop")
+	service 'stop' $*;;
 
     "init-londiste")
 	init_londiste $*;;

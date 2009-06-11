@@ -44,7 +44,7 @@ class londiste:
         for s in self.config.sections():
             if self.config.has_option(s, 'subscriber'):
                 if self.config.get(s, 'subscriber') == self.section:
-                    yield s
+                    yield s, self.config.get(s, 'host')
         return
 
     def tickers(self):
@@ -83,7 +83,7 @@ class londiste:
         # we avoid restoring tables which we are a replication subscriber of
         tables = set()
 
-        for s in self.subscribers():
+        for s, host in self.subscribers():
             p = set(self.config.get(s, 'provides').split(' '))
             # p could contain table\ntable, split on \n now
             for entry in p:
@@ -131,15 +131,24 @@ class londiste:
 
         return ini
 
+    def get_config_filename(self, provider, conf = None):
+        """ return the filename where to store the configuration """
+        if conf is None:
+            conf = self.prepare_config(provider)
+
+        basename = conf.get('londiste', 'pgq_queue_name').replace('_', '-')
+        filename = "%s/%s.%s.ini" % (self.tmpdir, basename, self.dbdate)
+
+        return filename
+    
     def write(self, provider, conf = None):
         """ write out computed londiste INI to a file """
         from options import VERBOSE
 
         if conf is None:
             conf = self.prepare_config(provider)
-
-        basename = conf.get('londiste', 'pgq_queue_name').replace('_', '-')
-        filename = "%s/%s.%s.ini" % (self.tmpdir, basename, self.dbdate)
+        filename = self.get_config_filename(conf)
+        
         fd = open(filename, "wb")
         conf.write(fd)
         fd.close()
@@ -211,6 +220,16 @@ class pgqadm:
         self.tmpdir   = tmpdir
         self.pgqadm   = ConfigParser.SafeConfigParser()
 
+    def get_config_filename(self, conf = None):
+        """ return the filename where to put the configuration by default """
+        if conf is None:
+            conf = self.prepare_config()
+            
+        basename = conf.get('pgqadm', 'job_name').replace('_', '-')
+        filename = "%s/ticker.%s.%s.ini" % (self.tmpdir, basename, self.dbdate)
+
+        return filename
+
     def prepare_config(self):
         """ prepare self.pgqadm to host needed setup """
 
@@ -239,15 +258,13 @@ class pgqadm:
 
         if conf is None:
             conf = self.prepare_config()
-
-        basename = conf.get('pgqadm', 'job_name').replace('_', '-')
-        filename = "%s/ticker.%s.%s.ini" % (self.tmpdir, basename, self.dbdate)
+        filename = self.get_config_filename(conf)
 
         if os.path.exists(filename):
             return None
 
-        if conf is None:
-            conf = self.prepare_config()
+        ## if conf is None:
+        ##     conf = self.prepare_config()
 
         fd = open(filename, "wb")
         conf.write(fd)

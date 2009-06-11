@@ -682,3 +682,53 @@ class Staging:
                 
         return
 
+
+    def control_service(self, service, action):
+        """ remotely restart a service, using CLIENT_SCRIPT """
+        from options import VERBOSE
+        
+        args = [action, service]
+
+        if service in ('londiste', 'ticker') and not self.replication:
+            raise Exception, "Replication is switched of in your setup"
+
+        if service == 'pgbouncer':
+            args += [self.pgbouncer_port]
+            out   = utils.run_client_script(self.host, args, self.use_sudo)
+
+            if VERBOSE and out:
+                print out
+
+        if service == 'londiste':
+            l = londiste.londiste(self.replication, self.section,
+                                  self.dbname, self.dated_dbname,
+                                  self.tmpdir, clean = True)
+
+            for t, host in l.tickers():
+                args += [ t.get_config_filename() ]
+                out   = utils.run_client_script(host, args, self.use_sudo)
+
+                if VERBOSE and out:
+                    print out
+
+            for p, host in l.providers():
+                args += [ p, l.get_config_filename(p) ]
+                out   = utils.run_client_script(host, args, self.use_sudo)
+
+                if VERBOSE and out:
+                    print out
+
+        if service == 'ticker':
+            l = londiste.londiste(self.replication, self.section,
+                                  self.dbname, self.dated_dbname,
+                                  self.tmpdir, clean = True)
+
+            for t, host in l.tickers():
+                args += [ t.get_config_filename() ]
+                out   = utils.run_client_script(self.host, args, self.use_sudo)
+
+                if VERBOSE and out:
+                    print out
+                
+        else:
+            raise Exception, "Error: unknown service '%s'" % service

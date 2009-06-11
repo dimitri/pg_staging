@@ -165,6 +165,32 @@ londiste <dbname> [<YYYMMDD>]::
 	 over to the provider hosts in +~pgstating/londiste+ and start the
 	 daemons (+pgqadm.py+ and +londiste.py+).
 
+=== remote service management ===
+
+Note that all actions (start, stop, restart, status) are not available to
+all services (londiste, ticker, pgbouncer).
+
+start <service> <dbname> [<YYYMMDD>]::
+
+         Start remote service for given +dbname+, where service is one of
+         +londiste+, +ticker+, or +pgbouncer+.
+
+
+stop <service> <dbname> [<YYYMMDD>]::
+
+         Stop remote service for given +dbname+, where service is one of
+         +londiste+, +ticker+, or +pgbouncer+.
+
+restart <service> <dbname> [<YYYMMDD>]::
+
+         Restart remote service for given +dbname+, where service is one of
+         +londiste+, +ticker+, or +pgbouncer+.
+
+status <service> <dbname> [<YYYMMDD>]::
+
+         Show status remote service for given +dbname+, where service is one of
+         +londiste+, +ticker+, or +pgbouncer+.
+
 === experimental and internal ===
 
 nodata::

@@ -511,7 +511,7 @@ def list_nodata_tables(conffile, args):
 
 def prepare_then_run_londiste(conffile, args):
     """ prepare londiste files for providers of given dbname section """
-    usage = "init_londiste <dbname> [date]"    
+    usage = "londiste <dbname> [date]"    
     dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
 
     # now load configuration and restore
@@ -519,6 +519,49 @@ def prepare_then_run_londiste(conffile, args):
     staging.set_backup_date(backup_date)
     for provider, filename in staging.prepare_then_run_londiste():
         print "%25s: %s" % (provider, os.path.basename(filename))
+
+def control_service(conffile, service, action, usage, args):
+    """ internal stuff """
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
+    staging = parse_config(conffile, dbname)
+    staging.set_backup_date(backup_date)
+    staging.control_service(service, action)
+
+def service_restart(conffile, args):
+    """ restart given service depending on its configuration and special args """
+    usage = "restart <service> <dbname> [date]"
+
+    if len(args) < 2:
+        raise WrongNumberOfArgumentsException, usage
+
+    control_service(conffile, args[0], 'restart', usage, args[1:])
+
+def service_stop(conffile, args):
+    """ stop given service depending on its configuration and special args """
+    usage = "stop <service> <dbname> [date]"
+
+    if len(args) < 2:
+        raise WrongNumberOfArgumentsException, usage
+
+    control_service(conffile, args[0], 'stop', usage, args[1:])
+
+def service_start(conffile, args):
+    """ start given service depending on its configuration and special args """
+    usage = "start <service> <dbname> [date]"
+
+    if len(args) < 2:
+        raise WrongNumberOfArgumentsException, usage
+
+    control_service(conffile, args[0], 'start', usage, args[1:])
+
+def service_start(conffile, args):
+    """ show status of given service ..."""
+    usage = "status <service> <dbname> [date]"
+
+    if len(args) < 2:
+        raise WrongNumberOfArgumentsException, usage
+
+    control_service(conffile, args[0], 'status', usage, args[1:])
 
 def get_config_option(conffile, args):
     """ <dbname> <option> print the current value of [dbname] option """
@@ -585,6 +628,10 @@ exports = {
 
     # londiste
     "londiste": prepare_then_run_londiste,
+    "restart":  service_restart,
+    "stop":     service_stop,
+    "start":    service_start,
+    "status":   service_status,
 
     # configuration file
     "get":       get_config_option,

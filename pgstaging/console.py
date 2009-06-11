@@ -11,7 +11,7 @@
 import os, os.path, cmd, readline, sys, ConfigParser
 import options, commands
 
-from options import CONSOLE_HISTORY, CONSOLE_HISTORY_LEN
+from options import CONSOLE_HISTORY
 
 class Console(cmd.Cmd):
 

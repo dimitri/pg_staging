@@ -2,7 +2,7 @@
 ## pg_staging.py common options
 ##
 
-VERSION = 0.6
+VERSION = 0.7
 
 VERBOSE = False
 TERSE   = False
@@ -21,4 +21,3 @@ COMMENT             = "#"
 
 # where to store the pg_staging console history
 CONSOLE_HISTORY     = "~/.pg_staging_history"
-CONSOLE_HISTORY_LEN = 500
