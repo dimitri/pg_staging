@@ -75,7 +75,7 @@ def run_client_script(host, args, use_sudo = True):
     else:
         sudo = ""
 
-    str_args = " ".join([str(x).replace('\n', ' ') for x in args])
+    str_args = " ".join(args)
     command  = "ssh %s %s ./%s %s" % (host, sudo, CLIENT_SCRIPT, str_args)
     return run_command(command, returning = RET_OUT)
 

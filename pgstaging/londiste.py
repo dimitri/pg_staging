@@ -110,7 +110,7 @@ class londiste:
 
         for s, host in self.subscribers():
             p = self.clean_provides( self.config.get(s, 'provides') )
-            tables = tables.union( s )
+            tables = tables.union( p )
                         
         return tables
 
