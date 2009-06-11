@@ -554,7 +554,7 @@ def service_start(conffile, args):
 
     control_service(conffile, args[0], 'start', usage, args[1:])
 
-def service_start(conffile, args):
+def service_status(conffile, args):
     """ show status of given service ..."""
     usage = "status <service> <dbname> [date]"
 
