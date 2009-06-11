@@ -82,8 +82,8 @@ class londiste:
         return
 
     def job_name(self, provider):
-        """ return the PGQ job_name associated with given provider """
-        return self.config.get(self.config.get(provider, 'ticker'), 'job_name')
+        """ return the londiste subscriber job_name, must be unique """
+        return self.section
 
     def get_nodata_tables(self):
         """ return a list of tables to avoid restoring """
