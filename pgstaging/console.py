@@ -149,8 +149,10 @@ class Console(cmd.Cmd):
             try:
                 commands.parse_input_line_and_run_command(self.conffile, line)
             except Exception, e:
-                # prints are already managed in commands module
-                pass
+                from options import DEBUG
+                if DEBUG:
+                    import traceback
+                    traceback.print_exc(file=sys.stdout)
         else:
             print "Error: no config file"
 
