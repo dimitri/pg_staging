@@ -47,8 +47,11 @@ class londiste:
                     yield s, self.config.get(s, 'host')
         return
 
-    def tickers(self):
+    def tickers(self, unique = True):
         """ list all tickers daemon we'll need for this section/dbname """
+
+        tickers = []
+        
         for p, host in self.providers():
             if not self.config.has_option(p, 'ticker'):
                 mesg = "Replication section '%s' has no 'ticker' option" % p
@@ -68,9 +71,11 @@ class londiste:
                 mesg = "Replication Section '%s' has no 'host' option" % t
                 raise UnknownOptionException, mesg
 
-            pgq = pgqadm(self.config, t, self.dbname, self.instance, self.tmpdir)
+            if unique and t in tickers:
+                continue
 
             # the host we return is the host where to run the ticker
+            pgq = pgqadm(self.config, t, self.dbname, self.instance, self.tmpdir)
             yield pgq, self.config.get(t, 'host')
         return
 
