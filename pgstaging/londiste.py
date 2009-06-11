@@ -83,7 +83,7 @@ class londiste:
 
     def job_name(self, provider):
         """ return the londiste subscriber job_name, must be unique """
-        return self.section
+        return provider
 
     def get_nodata_tables(self):
         """ return a list of tables to avoid restoring """
