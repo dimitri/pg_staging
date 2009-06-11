@@ -86,6 +86,11 @@ class Console(cmd.Cmd):
         options.VERBOSE = not options.VERBOSE
         print "verbose: %s" % str(options.VERBOSE)
 
+    def do_debug(self, args):
+        """ toggle debug on/off """
+        options.DEBUG = not options.DEBUG
+        print "debug: %s" % str(options.DEBUG)
+
     def do_help(self, args):
         """Get help on commands
            'help' or '?' with no arguments prints a list of commands for which help is available
