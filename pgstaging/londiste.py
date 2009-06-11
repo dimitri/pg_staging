@@ -74,9 +74,11 @@ class londiste:
             if unique and t in tickers:
                 continue
 
+            tickers += [t]
             # the host we return is the host where to run the ticker
             pgq = pgqadm(self.config, t, self.dbname, self.instance, self.tmpdir)
             yield pgq, self.config.get(t, 'host')
+            
         return
 
     def job_name(self, provider):
