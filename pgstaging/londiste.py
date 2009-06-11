@@ -226,7 +226,7 @@ class pgqadm:
         ini.set('pgqadm', 'pidfile',
                 '/var/run/londiste/ticker.%(job_name)s.' + '%s.pid'%self.dbdate)
         ini.set('pgqadm', 'logfile',
-                '/var/log/londiste/%(job_name)s.' + '%s.log' % self.dbdate)
+                '/var/log/londiste/ticker.%(job_name)s.' + '%s.log'%self.dbdate)
 
         db = self.config.get(self.section, 'db')
         ini.set('pgqadm', 'db', db.replace(self.dbname, self.instance))
