@@ -696,7 +696,7 @@ class Staging:
             raise Exception, "Error: no replication in your setup"
 
         if service == 'pgbouncer':
-            bargs = [self.pgbouncer_port]
+            bargs = args + [self.pgbouncer_port]
             out   = utils.run_client_script(self.host, bargs, self.use_sudo)
 
             if (action == 'status' or VERBOSE) and out:
