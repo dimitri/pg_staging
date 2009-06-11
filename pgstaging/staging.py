@@ -686,6 +686,9 @@ class Staging:
     def control_service(self, service, action):
         """ remotely start/stop/restart/status a service, using CLIENT_SCRIPT """
         from options import VERBOSE
+
+        if VERBOSE:
+            print "control_service:", service, action
         
         args = [action, service]
 
@@ -705,14 +708,14 @@ class Staging:
                                   self.tmpdir, clean = True)
 
             for t, host in l.tickers():
-                args += [ t.get_config_filename() ]
+                args += [ os.path.basename( t.get_config_filename() ) ]
                 out   = utils.run_client_script(host, args, self.use_sudo)
 
                 if VERBOSE and out:
                     print out
 
             for p, host in l.providers():
-                args += [ p, l.get_config_filename(p) ]
+                args += [ p, os.path.basename( l.get_config_filename(p) ) ]
                 out   = utils.run_client_script(host, args, self.use_sudo)
 
                 if VERBOSE and out:
@@ -724,7 +727,7 @@ class Staging:
                                   self.tmpdir, clean = True)
 
             for t, host in l.tickers():
-                args += [ t.get_config_filename() ]
+                args += [ os.path.basename( t.get_config_filename() ) ]
                 out   = utils.run_client_script(self.host, args, self.use_sudo)
 
                 if VERBOSE and out:
