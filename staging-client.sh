@@ -153,11 +153,17 @@ case $command in
     "pgbouncer")
 	pgbouncer $*;;
 
-    "restart")
-	service 'restart' $*;;
+    "start")
+	service 'start' $*;;
 
     "stop")
 	service 'stop' $*;;
+
+    "restart")
+	service 'restart' $*;;
+
+    "status")
+	service 'status' $*;;
 
     "init-londiste")
 	init_londiste $*;;
