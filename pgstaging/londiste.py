@@ -85,24 +85,33 @@ class londiste:
         """ return the londiste subscriber job_name, must be unique """
         return provider
 
+    def clean_provides(self, value):
+        """ return a well formatted list of tables from the ConfigParser value"""
+        s = set()
+        l = value.split('\n')
+
+        # l could contain table\ntable, split on \n now
+        for entry in l:
+            for e in entry.split(' '):
+                s = s.union([e])
+
+        # check that tables are all schema qualified
+        for t in s:
+            if len(t) < 4 or t.find('.') == -1:
+                mesg = "malformed table name in section %s: '%s'" % (s, t)
+                raise Exception, mesg
+
+        return s
+
     def get_nodata_tables(self):
         """ return a list of tables to avoid restoring """
         # we avoid restoring tables which we are a replication subscriber of
         tables = set()
 
         for s, host in self.subscribers():
-            p = set(self.config.get(s, 'provides').split(' '))
-            # p could contain table\ntable, split on \n now
-            for entry in p:
-                for e in entry.split('\n'):
-                    tables = tables.union([e])
-
-            # check that tables are all schema qualified
-            for t in tables:
-                if len(t) < 4 or t.find('.') == -1:
-                    mesg = "malformed table name in section %s: '%s'" % (s, t)
-                    raise Exception, mesg
-            
+            p = self.clean_provides( self.config.get(s, 'provides') )
+            tables = tables.union( s )
+                        
         return tables
 
     def prepare_config(self, provider):
@@ -169,7 +178,7 @@ class londiste:
         utils.scp(host, filename, '/tmp')
 
         remote_filename = os.path.basename(filename)
-        tables = self.config.get(provider, 'provides').split(' ')
+        tables = self.clean_provides( self.config.get(provider, 'provides') )
         args   = ['init-londiste', provider, remote_filename] + tables
         out    = utils.run_client_script(host, args, use_sudo)
 
