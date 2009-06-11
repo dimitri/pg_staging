@@ -699,7 +699,7 @@ class Staging:
             args += [self.pgbouncer_port]
             out   = utils.run_client_script(self.host, args, self.use_sudo)
 
-            if VERBOSE and out:
+            if (action == 'status' or VERBOSE) and out:
                 print out
 
         if service == 'londiste':
@@ -711,14 +711,14 @@ class Staging:
                 args += [ os.path.basename( t.get_config_filename() ) ]
                 out   = utils.run_client_script(host, args, self.use_sudo)
 
-                if VERBOSE and out:
+                if (action == 'status' or VERBOSE) and out:
                     print out
 
             for p, host in l.providers():
                 args += [ p, os.path.basename( l.get_config_filename(p) ) ]
                 out   = utils.run_client_script(host, args, self.use_sudo)
 
-                if VERBOSE and out:
+                if (action == 'status' or VERBOSE) and out:
                     print out
 
         if service == 'ticker':
@@ -730,7 +730,7 @@ class Staging:
                 args += [ os.path.basename( t.get_config_filename() ) ]
                 out   = utils.run_client_script(self.host, args, self.use_sudo)
 
-                if VERBOSE and out:
+                if (action == 'status' or VERBOSE) and out:
                     print out
                 
         else:
