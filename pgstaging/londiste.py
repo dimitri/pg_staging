@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ## Support for Skytools londiste (and pgqadm) .ini generation and daemon
 ## launch
 ##

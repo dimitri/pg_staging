@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ## console.py
 ##
 ## http://code.activestate.com/recipes/280500/

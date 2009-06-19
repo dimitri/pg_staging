@@ -126,7 +126,7 @@ function init_londiste() {
     londiste.py ~/londiste/$provider/$ini subscriber install
 
     londiste.py ~/londiste/$provider/$ini provider add $*
-    londiste.py ~/londiste/$provider/$ini provider add $*
+    londiste.py ~/londiste/$provider/$ini subscriber add $*
 }
 
 function replay() {
