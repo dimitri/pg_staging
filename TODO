@@ -10,6 +10,8 @@ What's next, doc?
 
 * implement VACUUM ANALYZE <dbname> and add it post-restore
 
+* new pitr command: restore from PITR (base backup + wal archives)
+
 == Some ideas
 
 * better "full size" scripting +#! /usr/bin/pg_staging+
