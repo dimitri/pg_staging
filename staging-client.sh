@@ -55,7 +55,7 @@ function service() {
 
 		*)
 		    echo "Don't know how to $action $service" >&2
-		    exit 1
+		    $(exit 1)
 		    ;;
 	    esac
 	    ;;
@@ -81,7 +81,7 @@ function service() {
 
 		*)
 		    echo "Don't know how to $action $service" >&2
-		    exit 1
+		    $(exit 1)
 		    ;;
 	    esac
 	    ;;
@@ -105,14 +105,14 @@ function service() {
 
 		*)
 		    echo "Don't know how to $action $service" >&2
-		    exit 1
+		    $(exit 1)
 		    ;;
 	    esac
 	    ;;
 
 	*)
 	    echo "Unknown service to restart: $service" >&2
-	    exit 1
+	    $(exit 3)
 	    ;;
     esac
 }
