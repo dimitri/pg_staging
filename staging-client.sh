@@ -85,6 +85,10 @@ function service() {
 	"ticker")
 	    ini=$3
 	    case $action in
+		"start")
+		    pgqadm.py ~/londiste/$ini ticker -d
+		    ;;
+
 		"stop")
 		    pgqadm.py ~/londiste/$ini -s
 		    sleep 3
