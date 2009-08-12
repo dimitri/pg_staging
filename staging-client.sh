@@ -64,6 +64,9 @@ function service() {
 	    provider=$3
 	    ini=$4
 	    case $action in
+		"start")
+		    londiste.py ~/londiste/$provider/$ini replay -d
+
 		"stop")
 		    # arg is londiste configuration file
 		    londiste.py ~/londiste/$provider/$ini -s
@@ -165,7 +168,11 @@ case $command in
 	service 'stop' $*;;
 
     "restart")
-	service 'restart' $*;;
+	service 'restart' $*
+	if [ $? -eq 1 ]; then
+	    service 'stop' $* && service start $*
+	fi
+	;;
 
     "status")
 	service 'status' $*;;
