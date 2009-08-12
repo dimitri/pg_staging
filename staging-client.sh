@@ -66,6 +66,7 @@ function service() {
 	    case $action in
 		"start")
 		    londiste.py ~/londiste/$provider/$ini replay -d
+		    ;;
 
 		"stop")
 		    # arg is londiste configuration file
