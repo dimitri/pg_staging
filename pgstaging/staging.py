@@ -9,6 +9,7 @@ from utils import NotYetImplementedException
 from utils import CouldNotGetDumpException
 from utils import PGRestoreFailedException
 from utils import SubprocessException
+from utils import ExportFileAlreadyExistsException
 
 class Staging:
     """ Staging Object relates to a database name, where to find the backups
@@ -395,6 +396,37 @@ class Staging:
         # set the database search_path if non default
         self.set_database_search_path()
 
+        return secs
+
+    def dump(self, filename, force = False):
+        """ launch a pg_restore for the current staging configuration """
+        from options import VERBOSE, TERSE
+
+        # first attempt to establish the connection to remote server
+        # no need to fetch the big backup file unless this succeed
+        #
+        # we will restore from pgbouncer connection, first connection is
+        # made to the maintenance database
+        r = restore.pgrestore(self.dbname,
+                              self.dbuser,
+                              self.host,
+                              self.pgbouncer_port,
+                              self.dbowner,
+                              self.maintdb,
+                              self.postgres_major,
+                              self.pg_restore)
+
+        fullname = os.path.join(self.tmpdir, filename)
+
+        try:
+            secs = r.pg_dump(fullname, force = force)
+        except ExportFileAlreadyExistsException:
+            print "Error: dump file '%s' already exists" % fullname
+            return None
+
+        if not TERSE:
+            os.system('ls -lh %s' % fullname)
+        
         return secs
 
     def switch(self):

@@ -12,8 +12,6 @@ What's next, doc?
 
 * new pitr command: restore from PITR (base backup + wal archives)
 
-* handle backups (pg_dump) too
-
 == Some ideas
 
 * better "full size" scripting +#! /usr/bin/pg_staging+

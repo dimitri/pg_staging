@@ -10,6 +10,7 @@ from utils import NotYetImplementedException
 from utils import CouldNotConnectPostgreSQLException
 from utils import CreatedbFailedException
 from utils import PGRestoreFailedException
+from utils import ExportFileAlreadyExistsException
 
 class pgrestore:
     """ Will launch correct pgrestore binary to restore a dump file to some
@@ -138,7 +139,7 @@ class pgrestore:
         dsn = "dbname='%s' user='%s' host='%s' port=%d connect_timeout=%d" \
               % (self.dbname, self.user, self.host, self.port, timeout)
 
-        if VERBOSE or True:
+        if VERBOSE:
             print "Trying to connect to: %s" % dsn
 
         try:
@@ -571,3 +572,36 @@ class pgrestore:
             return os.system(cmd)
         else:
             return utils.run_command(cmd, returning = utils.RET_OUT)
+
+    def pg_dump(self, filename, fmt = '-Fc', force = False):
+        """ pg_dump to filename, formating to -Fc by default """
+        from options import VERBOSE, BUFSIZE
+
+        cmd = "%s %s -U %s -h %s -p %d %s" \
+              % (self.restore_cmd.replace('pg_restore', 'pg_dump'),
+                 fmt, self.user, self.host, self.port, self.dbname)
+
+        if VERBOSE:
+            print '%s > %s' % (cmd, filename)
+
+        # try to connect with a safe timeout, raise an exception when failing
+        self.try_connection()
+
+        if not force and os.path.exists(filename):
+            raise ExportFileAlreadyExistsException
+
+        f = open(filename, 'wb', BUFSIZE)
+
+        # mesure pg_dump timing
+        import time
+        start_time = time.time()
+
+        # utils.run_command will raise a SubprocessException if pg_restore
+        # returns an error code (non zero)
+        out = utils.run_command(cmd, stdout = f)
+        f.close()
+        
+        end_time = time.time()
+
+        # time elapsed, in secs
+        return end_time - start_time

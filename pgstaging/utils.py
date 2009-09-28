@@ -10,7 +10,8 @@ PRE_SQL  = -1
 POST_SQL =  1
 
 def run_command(command,
-                expected_retcodes = 0, returning = RET_CODE, stdin = None):
+                expected_retcodes = 0, returning = RET_CODE,
+                stdin = None, stdout = subprocess.PIPE):
     """run a command and raise an exception if retcode not in expected_retcode"""
     from options import VERBOSE, DEBUG
     if VERBOSE:
@@ -27,7 +28,7 @@ def run_command(command,
         
     proc = subprocess.Popen(cmd,
                             stdin  = stdin,
-                            stdout = subprocess.PIPE,
+                            stdout = stdout,
                             stderr = subprocess.PIPE)
 
     out, err = proc.communicate()
@@ -138,4 +139,8 @@ class StagingRuntimeException(Exception):
 
 class UnknownCommandException(Exception):
     """ What command did you want me to run exactly? """
+    pass
+
+class ExportFileAlreadyExistsException(Exception):
+    """ Use --force to overwrite existing export filename """
     pass

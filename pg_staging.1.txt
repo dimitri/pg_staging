@@ -77,6 +77,19 @@ init <dbname>::
 	Prepare a cluster given a +pg_dumpall -g+ file, see option
 	+dumpall_url+.
 
+dump <dbname> [<filename>]::
+
+       dump given database to file, using pg_dump in custom format. The
+       pgbouncer_port is used and the filename defaults to
+       +dbname.YYYYMMDD.dump+. The +pg_restore+ directory part is considered
+       for finding the +pg_dump+ binary. This command will prevent you from
+       overwriting an existing dump file, see +redump+ if you do not want
+       this behavior.
+
+redump <dbname> [<filename>]::
+
+       dump even when destination filename already exists.
+
 restore <dbname> [<YYYYMMDD]>::
 
 	See +description+ section, it explains the details. It may be of

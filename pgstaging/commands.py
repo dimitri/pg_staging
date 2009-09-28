@@ -211,6 +211,32 @@ def init_cluster(conffile, args):
     staging = parse_config(conffile, args[0])
     staging.init_cluster()
 
+def dump(conffile, args, force = False):
+    """ <dbname> dump a database """
+    usage = "dump <dbname> [filename]"
+
+    if len(args) not in [1, 2]:
+        raise WrongNumberOfArgumentsException, usage
+
+    dbname = args[0]
+    
+    if len(args) == 1:
+        import datetime
+        filename = '%s.%s.dump' % (dbname, datetime.date.today().isoformat())
+    else:
+        filename = args[1]
+
+    # now load configuration and dump to filename
+    staging = parse_config(conffile, dbname)
+    pgdump_t = staging.dump(filename, force)
+
+    if pgdump_t:
+        print "   pg_dump:", duration_pprint(pgdump_t)
+
+def redump(conffile, args):
+    """ dump a database, overwriting the pre-existing dump file if it exists """
+    dump(conffile, args, True)
+
 def restore(conffile, args):
     """ <dbname> restore a database """
     usage = "restore <dbname> [date]"
@@ -604,6 +630,8 @@ exports = {
 
     # main operation
     "init":      init_cluster,
+    "dump":      dump,
+    "redump":    redump,
     "restore":   restore,
     "drop":      drop,
     "switch":    switch,
