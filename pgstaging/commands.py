@@ -5,7 +5,7 @@ import os, os.path, ConfigParser
 
 import utils
 from staging import Staging
-from options import VERBOSE, DRY_RUN
+from options import DEBUG, VERBOSE, DRY_RUN
 
 from utils import WrongNumberOfArgumentsException
 from utils import UnknownSectionException
@@ -121,10 +121,48 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
 
                 if os.path.isdir(sql_path):
                     staging.sql_path = sql_path
-            
+
+            # PITR command will need a WAL Shipping slave and a way to get
+            # the base backup and the WAL files
+            both_same    = True # none or set
+            pitr_basedir = get_option(config, dbname, "pitr_basedir", True)
+            base_backup  = get_option(config, dbname, "base_backup", True)
+            wal_archive  = get_option(config, dbname, "wal_archive", True)
+
+            if base_backup:
+                base_backup_cmd = config.get(dbname, "backup_command",
+                                             raw = False,
+                                             vars = {'path': base_backup})
+
+            if wal_archive:
+                wal_archive_cmd = config.get(dbname, "backup_command",
+                                             raw = False,
+                                             vars = {'path': wal_archive})
+
+            if (base_backup is None and wal_archive is not None) \
+               or (base_backup is not None and wal_archive is None):
+                raise Exception, "Please configure both base_backup " +\
+                      "and wal_archive, or none of them"
+
+            if base_backup:
+                rbb = config.get(dbname, "backup_command", raw = True).strip()
+                if rbb[-1] != '.' and rbb[-2:] != './':
+                    raise Exception, "base_backup must end with . or ./"
+
+                if pitr_basedir:
+                    staging.pitr_basedir = pitr_basedir
+                else:
+                    raise Exception, "Please configure pitr_basedir too."
+
+                if base_backup_cmd and wal_archive_cmd:
+                    staging.base_backup_cmd = base_backup_cmd
+                    staging.wal_archive_cmd = wal_archive_cmd
+
         except Exception, e:
             print >>sys.stderr, "Configuration error: %s" % e
-            raise
+            from options import DEBUG
+            if DEBUG:
+                raise
             sys.exit(4)
 
         return staging
@@ -274,6 +312,27 @@ def fetch_dump(conffile, args):
     staging.get_dump()
 
     print "  timing", duration_pprint(staging.wget_timing)
+
+def pitr(conffile, args):
+    """ <dbname> <time|xid> value"""
+    usage = "pitr <dbname> <time|xid> value"
+
+    if len(args) not in (1, 3):
+        raise WrongNumberOfArgumentsException, usage
+
+    dbname = args[0]
+    target = None
+    value  = None
+    
+    if len(args) == 3:
+        if args[1] not in ('time', 'xid'):
+            raise WrongNumberOfArgumentsException, usage
+        target = args[1]
+        value  = args[2]
+
+    # now load configuration and fetch
+    staging = parse_config(conffile, dbname)
+    staging.pitr(target, value)
 
 def pre_source_extra_files(conffile, args):
     """ <dbname> [date] """
@@ -637,6 +696,7 @@ exports = {
     "switch":    switch,
     "load":      restore_from_dump,
     "fetch":     fetch_dump,
+    "pitr":      pitr,
     "presql":    pre_source_extra_files,
     "postsql":   post_source_extra_files,
 

@@ -64,6 +64,8 @@ class Staging:
         self.replication     = None
         self.tmpdir          = tmpdir
         self.sql_path        = None
+        self.base_backup_cmd = None
+        self.wal_archive_cmd = None
 
         self.schemas         = []
         self.schemas_nodata  = []
@@ -74,26 +76,32 @@ class Staging:
         self.backup_date     = None
         self.backup_filename = None
 
+    def parse_date(self, date):
+        """ parse user given date """
+        import datetime
+
+        if date.find('-') > -1:
+            y, m, d = date.split('-')
+            return datetime.date(int(y), int(m), int(d))
+
+        elif len(date) == 8:
+            dummy = int(date) # poor man's parsing to raise exception
+            y = date[0:4]
+            m = date[4:6]
+            d = date[6:8]
+            return datetime.date(int(y), int(m), int(d))
+
+        else:
+            raise ValueError, "Unable to parse date: '%s'" % date
+
     def set_backup_date(self, date = None):
         """ set the backup date choosen by the user """
         import datetime
-
+        
         if date is None or date == "today":
             backup_date = datetime.date.today()
         else:
-            if date.find('-') > -1:
-                y, m, d = date.split('-')
-                backup_date = datetime.date(int(y), int(m), int(d))
-
-            elif len(date) == 8:
-                dummy = int(date) # poor man's parsing to raise exception
-                y = date[0:4]
-                m = date[4:6]
-                d = date[6:8]
-                backup_date = datetime.date(int(y), int(m), int(d))
-
-            else:
-                raise ValueError, "Unable to parse backup date: '%s'" % date
+            backup_date = self.parse_date(date)
 
         self.backup_date = backup_date.isoformat()
             
@@ -428,6 +436,30 @@ class Staging:
             os.system('ls -lh %s' % fullname)
         
         return secs
+
+    def pitr(self, target, value):
+        """ launch a Point In Time Recovery """
+        import datetime
+        from options import VERBOSE
+
+        if self.base_backup_cmd is None or self.wal_archive_cmd is None \
+           or self.pitr_basedir is None:
+            raise Exception, "Error: please configure PITR"
+        
+        cluster = datetime.date.today().isoformat().replace('-', '')
+        cluster = os.path.join(self.pitr_basedir, cluster)
+
+        if VERBOSE:
+            print "pitr:  target  %s [%s]" % (value, target)
+            print "pitr:    base  %s" % self.base_backup_cmd
+            print "pitr:     wal  %s" % self.wal_archive_cmd
+            print "pitr: basedir  %s" % cluster
+
+        client_args = [cluster, self.base_backup_cmd, self.wal_archive_cmd]
+        if target:
+            client_args += [target, value]
+
+        utils.run_client_script(self.host, client_args, self.use_sudo)
 
     def switch(self):
         """ edit pgbouncer configuration file to have canonical dbname point
