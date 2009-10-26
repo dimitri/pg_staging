@@ -2,8 +2,8 @@ doc: README.html TODO.html man
 
 man: pg_staging.1 pg_staging.1.html pg_staging.5 pg_staging.5.html
 
-README.html: README
-	asciidoc -a toc README
+README.html: README.rst
+	rst2html $< > $@
 
 TODO.html: TODO
 	asciidoc -a toc TODO

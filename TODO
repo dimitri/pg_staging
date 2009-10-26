@@ -2,15 +2,19 @@
 
 What's next, doc?
 
+== Ongoing stuff
+
+* new pitr command: restore from PITR (base backup + wal archives)
+
 == Important stuff
+
+* add examples now that the local setup is no more part of the distribution
 
 * debian packaging
 
 * +keep_bases+ implementation
 
 * implement VACUUM ANALYZE <dbname> and add it post-restore
-
-* new pitr command: restore from PITR (base backup + wal archives)
 
 == Some ideas
 
