@@ -6,3 +6,11 @@
 /pg_staging.5
 /pg_staging.5.html
 /pg_staging.5.xml
+/pgstaging/__init__.pyc
+/pgstaging/commands.pyc
+/pgstaging/londiste.pyc
+/pgstaging/options.pyc
+/pgstaging/pgbouncer.pyc
+/pgstaging/restore.pyc
+/pgstaging/staging.pyc
+/pgstaging/utils.pyc

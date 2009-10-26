@@ -1,0 +1,5 @@
+pgstaging (0.7-1) unstable; urgency=low
+
+  * Initial release (Closes: #nnnn)
+
+ -- Dimitri Fontaine <dim@tapoueh.org>  Mon, 26 Oct 2009 16:17:09 +0100

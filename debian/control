@@ -1,0 +1,24 @@
+Source: pgstaging
+Section: database
+Priority: extra
+Maintainer: Dimitri Fontaine <dim@tapoueh.org>
+Build-Depends: debhelper (>= 7), python-support
+Standards-Version: 3.8.3
+Homepage: http://github.com/dimitri/pg_staging
+
+Package: pgstaging
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, python (>= 2.4)
+Description: setup and maintain your staging environments from your production backups
+ pg_staging implements commands for playing with your PostgreSQL backups,
+ allowing you to expose in devel or prelive environments more than one copy
+ of a live database at the same time.
+
+
+Package: pgstaging-client
+Architecture: all
+Recommends: pgbouncer, skytools
+Description: client script for pgstaging
+ pg_staging implements commands for playing with your PostgreSQL backups,
+ allowing you to expose in devel or prelive environments more than one copy
+ of a live database at the same time.
