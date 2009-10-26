@@ -10,11 +10,13 @@ What's next, doc?
 
 * add examples now that the local setup is no more part of the distribution
 
-* debian packaging
+* debian packaging, pgstaging and pgstaging-client packages
 
 * +keep_bases+ implementation
 
 * implement VACUUM ANALYZE <dbname> and add it post-restore
+
+* add support for pg_restore -j
 
 == Some ideas
 
