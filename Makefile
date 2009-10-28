@@ -2,10 +2,10 @@ VERSION = $(shell ./pg_staging.py --version |cut -d' ' -f2)
 
 # debian setting
 DESTDIR    =
-
-libdir     = $(DESTDIR)/usr/share/python-support/pgloader
-exdir      = $(DESTDIR)/usr/share/doc/pgloader
+confdir    = $(DESTDIR)/etc/pg_staging
+libdir     = $(DESTDIR)/usr/share/python-support/pg_staging
 pg_staging = pg_staging.py
+conf       = pg_staging.ini replication.ini
 libs       = $(wildcard pgstaging/*.py)
 
 SRC      = .
@@ -34,10 +34,12 @@ prepare:
 	rsync -Ca $(DEBIAN) $(BUILDDIR)/$(SOURCE)
 
 install: doc
+	install -m 755 -d $(confdir)
 	install -m 755 $(pg_staging) $(DESTDIR)/usr/bin/pg_staging
 	install -m 755 -d $(libdir)/pgstaging
 
 	cp -a $(libs) $(libdir)/pgstaging
+	cp -a $(conf) $(confdir)
 
 doc: README.html TODO.html man
 

@@ -13,8 +13,8 @@ BUFSIZE = 8 * 1024 * 1024
 
 TMPDIR              = None    # given via -t option
 DEFAULT_TMPDIR      = '/tmp'  # hardcoded default for when no setup is made
-DEFAULT_CONFIG_FILE = "/etc/hm-tools/pg_staging.ini"
-CLIENT_SCRIPT       = "staging-client.sh"
+DEFAULT_CONFIG_FILE = "/etc/pg_staging/pg_staging.ini"
+CLIENT_SCRIPT       = "/usr/lib/staging-client.sh"
 
 # when using cat file.pgs | pg_staging.py
 COMMENT             = "#"

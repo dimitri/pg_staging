@@ -1,2 +1,3 @@
 usr/bin
 usr/share/doc/pgstaging
+etc/pg_staging
