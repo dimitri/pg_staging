@@ -14,3 +14,4 @@
 /pgstaging/restore.pyc
 /pgstaging/staging.pyc
 /pgstaging/utils.pyc
+/pgstaging/console.pyc

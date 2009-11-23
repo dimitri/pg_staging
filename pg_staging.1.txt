@@ -109,6 +109,11 @@ switch <dbname> [<YYYYMMDD]>::
 	Change the canonical <dbname> entry in +pgbouncer+ to point to given
 	dated instance, default to today's one.
 
+cleandb <dbname>::
+
+	Clean the database section by dropping out the older databases and
+	keeping online only the +keep_bases+ most recent.
+
 load <dbname> <filename>::
 
 	+pg_restore+ given dump file, this allow to skip the auto

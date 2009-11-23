@@ -313,6 +313,17 @@ def fetch_dump(conffile, args):
 
     print "  timing", duration_pprint(staging.wget_timing)
 
+def cleandb(conffile, args):
+    """ cleandb <dbname> """
+    usage = "clean <dbname>"
+
+    if len(args) != 1:
+        raise WrongNumberOfArgumentsException, usage
+
+    dbname = args[0]
+    staging = parse_config(conffile, dbname)
+    staging.cleandb()
+
 def pitr(conffile, args):
     """ <dbname> <time|xid> value"""
     usage = "pitr <dbname> <time|xid> value"
@@ -694,6 +705,7 @@ exports = {
     "restore":   restore,
     "drop":      drop,
     "switch":    switch,
+    "cleandb":   cleandb,
     "load":      restore_from_dump,
     "fetch":     fetch_dump,
     "pitr":      pitr,

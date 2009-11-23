@@ -6,13 +6,11 @@ What's next, doc?
 
 * new pitr command: restore from PITR (base backup + wal archives)
 
+* debian packaging, pgstaging and pgstaging-client packages
+
 == Important stuff
 
 * add examples now that the local setup is no more part of the distribution
-
-* debian packaging, pgstaging and pgstaging-client packages
-
-* +keep_bases+ implementation
 
 * implement VACUUM ANALYZE <dbname> and add it post-restore
 

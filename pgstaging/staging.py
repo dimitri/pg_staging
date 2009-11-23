@@ -2,7 +2,7 @@
 ## Staging Class to organise processing
 ##
 
-import os, httplib, time
+import os, httplib, time, psycopg2
 
 import pgbouncer, restore, londiste, utils
 from utils import NotYetImplementedException
@@ -531,9 +531,14 @@ class Staging:
         if self.host not in ("localhost", "127.0.0.1"):
             os.unlink(newconffile)
                 
-    def drop(self):
+    def drop(self, dbname = None):
         """ drop the given database: dbname_%(backup_date) """
-        r = restore.pgrestore(self.dated_dbname,
+        from options import TERSE
+        
+        if dbname is None:
+            dbname = self.dated_dbname
+        
+        r = restore.pgrestore(dbname,
                               self.dbuser,
                               self.host,
                               self.pgbouncer_port,
@@ -542,16 +547,41 @@ class Staging:
                               self.postgres_major)
 
         # pause the database beforehand
-        self.pgbouncer_pause(self.dated_dbname)
+        self.pgbouncer_pause(dbname)
 
         # and dropdb now that there's no more connection to it
-        r.dropdb()
-
-        # resume it
-        self.pgbouncer_resume(self.dated_dbname)
+        try:
+            r.dropdb()
+        except psycopg2.ProgrammingError, e:
+            # database still is in pgbouncer setup but has already been
+            # dropped, database %%% does not exist error
+            if not TERSE:
+                print "Cleaning up pgbouncer for non-existing database %s" \
+                      % dbname
 
         # and remove it from pgbouncer configuration
-        self.pgbouncer_del_database(self.dated_dbname)
+        self.pgbouncer_del_database(dbname)
+
+    def cleandb(self):
+        """ keep only self.keep_bases databases """
+        from options import TERSE, VERBOSE
+        
+        dlist = [d[1]
+                 for d in self.pgbouncer_databases()
+                 if d[1] != self.dbname and d[1].startswith(self.dbname)]
+        dlist.sort()
+
+        if len(dlist) <= self.keep_bases:
+            if not TERSE:
+                print "cleandb: we keep %d databases and have only %d" %\
+                      (self.keep_bases, len(dlist)) \
+                      + ", skipping" 
+                
+            return
+
+        for d in dlist:
+            self.drop(d)
+        return
         
     def dbsize(self, dbname = None):
         """ return database size, pretty printed """
