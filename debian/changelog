@@ -1,3 +1,9 @@
+pgstaging (0.9-1) unstable; urgency=low
+
+  * Implement restore_jobs option to use pg_restore -j
+
+ -- Dimitri Fontaine <dim@tapoueh.org>  Tue, 24 Nov 2009 18:02:29 +0100
+
 pgstaging (0.8~dev-2) unstable; urgency=low
 
   * Fix architecture field
