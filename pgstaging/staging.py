@@ -30,13 +30,14 @@ class Staging:
                  postgres_major,
                  pgbouncer_port,
                  pgbouncer_conf,
-                 remove_dump   = True,
-                 keep_bases    = 2,
-                 auto_switch   = True,
-                 use_sudo      = True,
-                 pg_restore    = "/usr/bin/pg_restore",
-                 pg_restore_st = True,
-                 tmpdir        = None):
+                 remove_dump    = True,
+                 keep_bases     = 2,
+                 auto_switch    = True,
+                 use_sudo       = True,
+                 pg_restore     = "/usr/bin/pg_restore",
+                 pg_restore_st  = True,
+                 restore_vacuum = True,
+                 tmpdir         = None):
         """ Create a new staging object, configured """
 
         self.creation_time   = time.time()
@@ -61,6 +62,7 @@ class Staging:
         self.use_sudo        = use_sudo    == "True"
         self.pg_restore      = pg_restore
         self.pg_restore_st   = pg_restore_st == "True"
+        self.restore_vacuum  = restore_vacuum == "True"
         self.replication     = None
         self.tmpdir          = tmpdir
         self.sql_path        = None
@@ -346,12 +348,15 @@ class Staging:
         # remove the dump even when there was no exception
         self.do_remove_dump(filename)
 
+        # if told to do so, now vacuum analyze the database
+        vacuum_timing = self.vacuumdb()
+
         # source the extra SQL files
         for sql in self.psql_source_files(utils.POST_SQL):
             if VERBOSE:
                 print "psql -f %s" % sql
 
-        return self.wget_timing, secs
+        return self.wget_timing, secs, vacuum_timing
 
     def load(self, filename):
         """ will pg_restore from the already present dumpfile and determine
@@ -583,7 +588,20 @@ class Staging:
         for d in dlist[:-2]:
             self.drop(d)
         return
-        
+
+    def vacuumdb(self):
+        """ run VACUUM VERBOSE ANALYZE on the database """
+        r = restore.pgrestore(self.dated_dbname,
+                              self.dbuser,
+                              self.host,
+                              self.pgbouncer_port,
+                              self.dbowner,
+                              self.maintdb,
+                              self.postgres_major)
+
+        return r.vacuumdb()
+
+
     def dbsize(self, dbname = None):
         """ return database size, pretty printed """
         if dbname is not None:

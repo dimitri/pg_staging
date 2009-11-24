@@ -116,6 +116,11 @@ pg_restore_st::
 
 	boolean, use +--single-statement+ option (+-1+) in +pg_restore+.
 
+restore_vacuum::
+
+	boolean, when true the +restore+ command will +VACUUM ANALYZE+ the
+	database.
+
 replication::
 
 	configuration filename where to setup the replication options.
@@ -181,3 +186,7 @@ schemas_nodata::
 == SEE ALSO ==
 
 `pg_staging(1)`
+
+== AUTHOR ==
+
++pg_staging+ is written by Dimitri Fontaine <dim@tapoueh.org>.

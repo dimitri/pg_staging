@@ -12,8 +12,6 @@ What's next, doc?
 
 * add examples now that the local setup is no more part of the distribution
 
-* implement VACUUM ANALYZE <dbname> and add it post-restore
-
 * add support for pg_restore -j
 
 == Some ideas

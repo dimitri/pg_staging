@@ -2,7 +2,7 @@
 ## pg_staging.py common options
 ##
 
-VERSION = 0.7
+VERSION = "0.8~dev"
 
 VERBOSE = False
 TERSE   = False

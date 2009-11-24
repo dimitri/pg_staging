@@ -25,9 +25,15 @@ http accessible backups. Its main job (see command +restore+) is to:
  4. prepare a filtered catalog for the given dump, depending on
     configuration
 
- 5. +pg_restore+ the backup with the custom catalog to the created database
+ 5. given +sql_path+ and a +pre+ directory, +psql -f *.sql+ in there
 
- 6. switch +pgbouncer+ entry for +dbname+ to target +dbname_YYYYMMDD+ and
+ 6. +pg_restore+ the backup with the custom catalog to the created database
+
+ 7. if +restore_vacuum+ is true, +VACUUM ANALYZE+ the database
+
+ 8. given +sql_path+ setup and a +post+ directory, +psql -f *.sql+ in there
+
+ 9. switch +pgbouncer+ entry for +dbname+ to target +dbname_YYYYMMDD+ and
     reload +pgbouncer+ again.
 
 +pg_staging+ is able to do some more, mainly the commands given allow to
@@ -90,7 +96,7 @@ redump <dbname> [<filename>]::
 
        dump even when destination filename already exists.
 
-restore <dbname> [<YYYYMMDD]>::
+restore <dbname> [<YYYYMMDD>]::
 
 	See +description+ section, it explains the details. It may be of
 	importance to recall that +restore+ will clean up its temporary
@@ -98,13 +104,13 @@ restore <dbname> [<YYYYMMDD]>::
 	of success and in case of error. This command will source pre and
 	post +sql+ files, as per +sql_path+ config.
 
-drop <dbname> [<YYYYMMDD]>::
+drop <dbname> [<YYYYMMDD>]::
 
 	+DROP DATABASE+ the given database, or today's one if none given. It
 	won't edit +pgbouncer+ configuration accordingly though, as of
 	version +0.5+.
 
-switch <dbname> [<YYYYMMDD]>::
+switch <dbname> [<YYYYMMDD>]::
 
 	Change the canonical <dbname> entry in +pgbouncer+ to point to given
 	dated instance, default to today's one.
@@ -114,22 +120,26 @@ cleandb <dbname>::
 	Clean the database section by dropping out the older databases and
 	keeping online only the +keep_bases+ most recent.
 
+vacuumdb <dbname> [<YYYYMMDD>]::
+
+	 VACUUM ANALYZE given database.
+
 load <dbname> <filename>::
 
 	+pg_restore+ given dump file, this allow to skip the auto
 	downloading part of the +restore+ command.
 
-fetch <dbname> [<YYYYMMDD]>::
+fetch <dbname> [<YYYYMMDD>]::
 
 	Only fetch the dump, do not restore it, do not remove it afterwards.
 
-presql <dbname> [<YYYYMMDD]>::
+presql <dbname> [<YYYYMMDD>]::
 
         Source the `sql_path/pre/*.sql` files into the database by means of
         +psql -f+, in alphabetical order, *without* recursive walking into
         subdirs.
 
-postsql <dbname> [<YYYYMMDD]>::
+postsql <dbname> [<YYYYMMDD>]::
 
         Source the `sql_path/post/*.sql` files into the database by means of
         +psql -f+, in alphabetical order, *without* recursive walking into
@@ -141,7 +151,7 @@ databases::
 
 	Show the list of database sections parsed into the .ini file.
 
-backups <dbname> [<YYYYMMDD]>::
+backups <dbname> [<YYYYMMDD>]::
 	
 	Show <dbname> available backups on the http host.
 
@@ -273,3 +283,6 @@ How we use tools. Will get expanded if questions arise.
 
 `pg_staging(5)`
 
+== AUTHOR ==
+
++pg_staging+ is written by Dimitri Fontaine <dim@tapoueh.org>.

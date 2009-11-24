@@ -75,6 +75,7 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
                               get_option(config, dbname, "use_sudo"),
                               get_option(config, dbname, "pg_restore"),
                               get_option(config, dbname, "pg_restore_st"),
+                              get_option(config, dbname, "restore_vacuum"),
                               get_option(config, dbname, "tmpdir", True))
 
             schemas = get_option(config, dbname, "schemas", True)
@@ -283,10 +284,11 @@ def restore(conffile, args):
     # now load configuration and restore
     staging = parse_config(conffile, dbname)
     staging.set_backup_date(backup_date)
-    wget_t, pgrestore_t = staging.restore()
+    wget_t, pgrestore_t, vacuumdb_t = staging.restore()
 
     print "  fetching:", duration_pprint(wget_t)
     print "pg_restore:", duration_pprint(pgrestore_t)
+    print "    vacuum:", duration_pprint(vacuumdb_t)
 
 def restore_from_dump(conffile, args):
     """ <dbname> <dumpfile> """
@@ -315,7 +317,7 @@ def fetch_dump(conffile, args):
 
 def cleandb(conffile, args):
     """ cleandb <dbname> """
-    usage = "clean <dbname>"
+    usage = "cleandb <dbname>"
 
     if len(args) != 1:
         raise WrongNumberOfArgumentsException, usage
@@ -323,6 +325,18 @@ def cleandb(conffile, args):
     dbname = args[0]
     staging = parse_config(conffile, dbname)
     staging.cleandb()
+
+def vacuumdb(conffile, args):
+    """ vacuumdb <dbname> [date]"""
+    usage = "vacuumdb <dbname> [date]"
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
+
+    # now load configuration and fetch
+    staging = parse_config(conffile, dbname)
+    staging.set_backup_date(backup_date)
+    secs = staging.vacuumdb()
+
+    print "vacuum took: %s" % duration_pprint(secs)
 
 def pitr(conffile, args):
     """ <dbname> <time|xid> value"""
@@ -706,6 +720,7 @@ exports = {
     "drop":      drop,
     "switch":    switch,
     "cleandb":   cleandb,
+    "vacuumdb":  vacuumdb,
     "load":      restore_from_dump,
     "fetch":     fetch_dump,
     "pitr":      pitr,

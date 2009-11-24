@@ -1,3 +1,10 @@
+pgstaging (0.8~dev-1) unstable; urgency=low
+
+  * Implement a purge command to only keep configured number of online databases
+  * Implement a vacuumdb command
+
+ -- Dimitri Fontaine <dim@tapoueh.org>  Tue, 24 Nov 2009 14:08:22 +0100
+
 pgstaging (0.7-1) unstable; urgency=low
 
   * Initial release (Closes: #552488)

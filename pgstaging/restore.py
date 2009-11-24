@@ -127,6 +127,38 @@ class pgrestore:
         if not TERSE:
             print 'dropped database "%s"' % self.dbname
 
+    def vacuumdb(self):
+        """ connect to remote PostgreSQL server to vacuum database"""
+        from options import VERBOSE, TERSE
+
+        if VERBOSE:
+            print "vacuumdb analyze %s" % self.dbname
+
+        dsn = "dbname='%s' user='%s' host='%s' port=%d connect_timeout=%d" \
+              % (self.dbname, self.user, self.host, self.port,
+                 self.connect_timeout)
+
+        try:
+            mconn = psycopg2.connect(dsn)
+
+            # vacuum database can't run from within a transaction
+            self.mconn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+            curs = self.mconn.cursor()
+
+            # mesure pg_restore timing
+            import time
+            start_time = time.time()
+        
+            curs.execute('VACUUM ANALYZE')
+
+            end_time = time.time()
+            
+            curs.close()
+        except Exception, e:
+            raise
+
+        return end_time - start_time
+
     def try_connection(self, timeout = None):
         """ try to connect to target database and raise Exception after
         timeout, this helps preventing pgbouncer pause issues and waiting
