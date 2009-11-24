@@ -125,7 +125,7 @@ class pgrestore:
             raise
 
         if not TERSE:
-            print 'droped database "%s"' % self.dbname
+            print 'dropped database "%s"' % self.dbname
 
     def try_connection(self, timeout = None):
         """ try to connect to target database and raise Exception after

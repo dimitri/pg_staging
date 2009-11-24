@@ -497,7 +497,7 @@ class Staging:
 
     def pgbouncer_del_database(self, dbname):
         """ edit pgbouncer configuration file to add a database """
-        from options import TERSE
+        from options import VERBOSE
         
         p = pgbouncer.pgbouncer(self.pgbouncer_conf,
                                 self.dbuser,
@@ -508,7 +508,7 @@ class Staging:
 
         self.pgbouncer_update_conf(newconffile)
 
-        if not TERSE:
+        if VERBOSE:
             print "deleted a pgbouncer database %s" % dbname
 
     def pgbouncer_update_conf(self, newconffile):
@@ -566,9 +566,10 @@ class Staging:
         """ keep only self.keep_bases databases """
         from options import TERSE, VERBOSE
         
-        dlist = [d[1]
+        dlist = [d[1].strip('"')
                  for d in self.pgbouncer_databases()
-                 if d[1] != self.dbname and d[1].startswith(self.dbname)]
+                 if d[0].strip('"') != self.dbname \
+                 and d[1].strip('"').startswith(self.dbname)]
         dlist.sort()
 
         if len(dlist) <= self.keep_bases:
@@ -579,7 +580,7 @@ class Staging:
                 
             return
 
-        for d in dlist:
+        for d in dlist[:-2]:
             self.drop(d)
         return
         
@@ -716,8 +717,8 @@ class Staging:
 
     def pgbouncer_pause(self, dbname):
         """ pause given database """
-        from options import TERSE
-        if not TERSE:
+        from options import VERBOSE
+        if VERBOSE:
             print "pause %s;" % dbname
         p = pgbouncer.pgbouncer(self.pgbouncer_conf,
                                 self.dbuser,
