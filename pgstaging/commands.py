@@ -76,6 +76,7 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
                               get_option(config, dbname, "pg_restore"),
                               get_option(config, dbname, "pg_restore_st"),
                               get_option(config, dbname, "restore_vacuum"),
+                              get_option(config, dbname, "restore_jobs"),
                               get_option(config, dbname, "tmpdir", True))
 
             schemas = get_option(config, dbname, "schemas", True)

@@ -121,6 +121,13 @@ restore_vacuum::
 	boolean, when true the +restore+ command will +VACUUM ANALYZE+ the
 	database.
 
+restore_jobs::
+
+	Number of working process to use at the same time while
+	restoring. Will set the +-j+ option to +pg_restore+ and will not
+	check for you that you're using a +pg_restore+ client version +8.4+
+	or newer.
+
 replication::
 
 	configuration filename where to setup the replication options.
@@ -172,6 +179,8 @@ schemas_nodata::
    use_sudo        = True
    pg_restore      = /usr/lib/postgresql/%(postgres_major)s/bin/pg_restore
    pg_restore_st   = True
+   restore_vacuum  = True
+   restore_jobs    = 1
    replication     = replication.ini
 
   [allopass_db.dev]

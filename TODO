@@ -10,8 +10,6 @@ What's next, doc?
 
 * add examples now that the local setup is no more part of the distribution
 
-* add support for pg_restore -j
-
 == Some ideas
 
 * better "full size" scripting +#! /usr/bin/pg_staging+

@@ -37,6 +37,7 @@ class Staging:
                  pg_restore     = "/usr/bin/pg_restore",
                  pg_restore_st  = True,
                  restore_vacuum = True,
+                 restore_jobs   = 1,
                  tmpdir         = None):
         """ Create a new staging object, configured """
 
@@ -63,6 +64,7 @@ class Staging:
         self.pg_restore      = pg_restore
         self.pg_restore_st   = pg_restore_st == "True"
         self.restore_vacuum  = restore_vacuum == "True"
+        self.restore_jobs    = restore_jobs
         self.replication     = None
         self.tmpdir          = tmpdir
         self.sql_path        = None
@@ -329,6 +331,8 @@ class Staging:
         try:
             if VERBOSE:
                 os.system("ls -l %s" % filename)
+            
+            r.restore_jobs = self.restore_jobs
             secs = r.pg_restore(filename, self.get_nodata_tables())
 
             # only switch pgbouncer configuration to new database when there
@@ -399,6 +403,7 @@ class Staging:
             if VERBOSE:
                 os.system("ls -l %s" % filename)
             
+            r.restore_jobs = self.restore_jobs
             secs = r.pg_restore(filename, self.get_nodata_tables())
 
         except Exception, e:

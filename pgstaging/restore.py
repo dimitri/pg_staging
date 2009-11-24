@@ -35,6 +35,7 @@ class pgrestore:
         self.schemas         = schemas
         self.schemas_nodata  = schemas_nodata
         self.connect_timeout = connect_timeout
+        self.restore_jobs    = 1
 
         self.dsn = "dbname='%s' user='%s' host='%s' port=%d connect_timeout=%d" \
                    % (self.maintdb, self.user, self.host, self.port,
@@ -204,6 +205,10 @@ class pgrestore:
                "-U", self.user,
                "-d", self.dbname
                ]
+
+        # pg_restore -j
+        if self.restore_jobs > 1:
+            cmd += ["-j", self.restore_jobs]
 
         # Exclude some schemas at restore time?
         catalog = ""
