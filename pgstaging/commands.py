@@ -315,16 +315,16 @@ def fetch_dump(conffile, args):
 
     print "  timing", duration_pprint(staging.wget_timing)
 
-def cleandb(conffile, args):
-    """ cleandb <dbname> """
-    usage = "cleandb <dbname>"
+def purge(conffile, args):
+    """ purge <dbname> """
+    usage = "purge <dbname>"
 
     if len(args) != 1:
         raise WrongNumberOfArgumentsException, usage
 
     dbname = args[0]
     staging = parse_config(conffile, dbname)
-    staging.cleandb()
+    staging.purge()
 
 def vacuumdb(conffile, args):
     """ vacuumdb <dbname> [date]"""
@@ -719,7 +719,7 @@ exports = {
     "restore":   restore,
     "drop":      drop,
     "switch":    switch,
-    "cleandb":   cleandb,
+    "purge":     purge,
     "vacuumdb":  vacuumdb,
     "load":      restore_from_dump,
     "fetch":     fetch_dump,

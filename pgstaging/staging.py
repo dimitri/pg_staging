@@ -567,7 +567,7 @@ class Staging:
         # and remove it from pgbouncer configuration
         self.pgbouncer_del_database(dbname)
 
-    def cleandb(self):
+    def purge(self):
         """ keep only self.keep_bases databases """
         from options import TERSE, VERBOSE
         
