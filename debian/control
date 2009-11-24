@@ -2,12 +2,12 @@ Source: pgstaging
 Section: database
 Priority: extra
 Maintainer: Dimitri Fontaine <dim@tapoueh.org>
-Build-Depends: debhelper (>= 7), python-support, asciidoc (>= 8.2)
+Build-Depends: debhelper (>= 7), python-support, asciidoc (>= 8.2), python-docutils
 Standards-Version: 3.8.3
 Homepage: http://github.com/dimitri/pg_staging
 
 Package: pgstaging
-Architecture: any
+Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, python (>= 2.4)
 Description: setup and maintain your staging environments from your production backups
  pg_staging implements commands for playing with your PostgreSQL backups,

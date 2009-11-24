@@ -35,13 +35,13 @@ clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
-	dh_clean 
+	dh_clean
 	$(MAKE) DESTDIR=$(CURDIR)/debian/pgstaging clean
 
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k 
+	dh_prep
 	dh_installdirs
 
 	# Add here commands to install the package into debian/pgloader.

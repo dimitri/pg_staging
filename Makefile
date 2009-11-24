@@ -26,7 +26,7 @@ deb: prepare
 	cp $(BUILDDIR)/$(PACKAGE)_* ..
 	cp $(BUILDDIR)/$(SOURCE)_* ..
 
-prepare:
+prepare: clean
 	-test -d $(BUILDDIR) && rm -rf $(BUILDDIR)
 	mkdir -p $(BUILDDIR)/$(SOURCE)
 	rsync -Ca --exclude $(DEBIAN) $(SRC)/* $(BUILDDIR)/$(SOURCE)
@@ -66,4 +66,4 @@ pg_staging.5: pg_staging.5.txt
 	xmlto man pg_staging.5.xml
 
 clean:
-	rm -f *.xml
+	rm -f *.xml *.html
