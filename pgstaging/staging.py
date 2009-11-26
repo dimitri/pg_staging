@@ -64,7 +64,7 @@ class Staging:
         self.pg_restore      = pg_restore
         self.pg_restore_st   = pg_restore_st == "True"
         self.restore_vacuum  = restore_vacuum == "True"
-        self.restore_jobs    = restore_jobs
+        self.restore_jobs    = int(restore_jobs)
         self.replication     = None
         self.tmpdir          = tmpdir
         self.sql_path        = None
@@ -292,7 +292,7 @@ class Staging:
 
     def restore(self):
         """ launch a pg_restore for the current staging configuration """
-        from options import VERBOSE, TERSE
+        from options import VERBOSE, TERSE, DEBUG
 
         # first attempt to establish the connection to remote server
         # no need to fetch the big backup file unless this succeed
@@ -341,9 +341,10 @@ class Staging:
                 self.switch()
 
         except Exception, e:
+            if DEBUG:
+                raise
             mesg  = "Error: couldn't pg_restore from '%s'" % (filename)
             mesg += "\nDetail: %s" % e
-            self.do_remove_dump(filename)
             raise PGRestoreFailedException, mesg
 
         # set the database search_path if non default
@@ -365,7 +366,7 @@ class Staging:
     def load(self, filename):
         """ will pg_restore from the already present dumpfile and determine
         the backup date from the file, which isn't removed """
-        from options import VERBOSE, TERSE
+        from options import VERBOSE, TERSE, DEBUG
 
         # first parse the dump filename
         try:
@@ -407,6 +408,8 @@ class Staging:
             secs = r.pg_restore(filename, self.get_nodata_tables())
 
         except Exception, e:
+            if DEBUG:
+                raise
             mesg  = "Error: couldn't pg_restore from '%s'" % (filename)
             mesg += "\nDetail: %s" % e
             raise PGRestoreFailedException, mesg

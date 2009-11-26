@@ -11,6 +11,7 @@ from utils import CouldNotConnectPostgreSQLException
 from utils import CreatedbFailedException
 from utils import PGRestoreFailedException
 from utils import ExportFileAlreadyExistsException
+from utils import UnknownCommandException
 
 class pgrestore:
     """ Will launch correct pgrestore binary to restore a dump file to some
@@ -36,6 +37,13 @@ class pgrestore:
         self.schemas_nodata  = schemas_nodata
         self.connect_timeout = connect_timeout
         self.restore_jobs    = 1
+        self.mconn           = None
+
+        # check that the pg_restore binary do exists
+        if not os.path.isfile(self.restore_cmd):
+            mesg = "Error: pg_restore command: no such file '%s'" \
+                   % self.restore_cmd
+            raise UnknownCommandException, mesg
 
         self.dsn = "dbname='%s' user='%s' host='%s' port=%d connect_timeout=%d" \
                    % (self.maintdb, self.user, self.host, self.port,

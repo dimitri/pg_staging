@@ -1,3 +1,11 @@
+pgstaging (0.10-1) unstable; urgency=low
+
+  * Fix handling of -j X option (forgot a cast to int)
+  * Fix error case when the pg_restore command points to a non existing file
+  * Stop removing the dump file on pg_restore error, so you can then use load
+
+ -- Dimitri Fontaine <dim@tapoueh.org>  Thu, 26 Nov 2009 10:38:48 +0100
+
 pgstaging (0.9-1) unstable; urgency=low
 
   * Implement restore_jobs option to use pg_restore -j
