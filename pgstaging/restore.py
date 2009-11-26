@@ -216,7 +216,7 @@ class pgrestore:
 
         # pg_restore -j
         if self.restore_jobs > 1:
-            cmd += ["-j", self.restore_jobs]
+            cmd += ["-j", "%d" % self.restore_jobs]
 
         # Exclude some schemas at restore time?
         catalog = ""
