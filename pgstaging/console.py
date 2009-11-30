@@ -8,6 +8,11 @@
 ## Version:  1.0
 ## Location: http://www.eskimo.com/~jet/python/examples/cmd/
 ## Copyright (c) 2004, James Thiele
+##
+## http://code.activestate.com/help/terms/
+##
+## All submitted material will be made freely available on the ActiveState
+## site under the MIT license.
 
 import os, os.path, cmd, readline, sys, ConfigParser
 import options, commands
