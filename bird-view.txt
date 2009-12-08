@@ -1,0 +1,33 @@
+			     
+       	   		     +-----------+           
+    +-------------+      +-->| bdd1.prod |           
+    |  backups	  |    	 |   | cRED {s}	 |  
+    | cGRE   {d}  +------+   +-----------+             	       	       	     
+    |dump / apache|      |     	                             
+    +-+-----------+    	 |   +-----------+           
+      ^	       	       	 |   | bddN.prod |           
+      |	      	       	 +-->| cRED {s}  |        	       	       	 
+      |	       	       	     +-----------+       
+      |	      	       	      	      	    	 
+      |	     /-------------+  init     	   drop	 
+      |	     |	       	   |  restore  	   dbsizes  
+      |	     | 	pgstaging  |  pgbouncer	   start stop
+      +------+	       	   |  psql     	   status    
+       	     | 	controler  |  switch  	   show	       	   
+       	     |	   cPNK    |  purge   	   set get
+       	     +-----+----+--/  vacuumdb 	   ... 	      
+       	       	   |  	|    		  	 
+       	       	   |  	|    		  	 
+ +----------+      |   	|     +--------------+   
+ | bdd1.dev |<-----+   	+---->|	bdd1.preprod |   
+ | c1FF {s} |      |    |     | c1AB {s}     | 	
+ +----------+      |   	|     +--------------+		       	 
+                   |   	|     		      
+                   |	|     		      
+ +----------+      |	|     +--------------+   
+ | bddN.dev |<-----+   	+---->| bddN.preprod |   
+ | c1FF {s} |                 | c1AB {s}     |
+ +----------+          	      +--------------+ 		       	 
+                              		      
+               		                      
+              				     
