@@ -13,6 +13,8 @@
 ##
 ## All submitted material will be made freely available on the ActiveState
 ## site under the MIT license.
+##
+## http://www.opensource.org/licenses/mit-license.php
 
 import os, os.path, cmd, readline, sys, ConfigParser
 import options, commands

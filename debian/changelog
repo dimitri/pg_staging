@@ -1,3 +1,10 @@
+pgstaging (0.11-1) unstable; urgency=low
+
+  * Clarify the pgstaging/console.py licence: MIT
+  * Install the client part in /usr/share/pgstaging rather than /usr/lib
+
+ -- Dimitri Fontaine <dim@tapoueh.org>  Thu, 10 Dec 2009 12:02:54 +0100
+
 pgstaging (0.10-1) unstable; urgency=low
 
   * Fix handling of -j X option (forgot a cast to int)

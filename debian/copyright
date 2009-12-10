@@ -32,6 +32,9 @@ License:
 On Debian systems, the complete text of the BSD License can be
 found in `/usr/share/common-licenses/BSD'.
 
+The pgstaging/console.py file is MIT licenced. The terms of services
+applying are to be read at http://code.activestate.com/help/terms/.
+
 The Debian packaging is:
 
     Copyright (C) 2009 Dimitri Fontaine <dim@tapoueh.org>
