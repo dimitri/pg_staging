@@ -10,6 +10,7 @@ from utils import CouldNotGetDumpException
 from utils import PGRestoreFailedException
 from utils import SubprocessException
 from utils import ExportFileAlreadyExistsException
+from utils import ParseDumpFileException
 
 class Staging:
     """ Staging Object relates to a database name, where to find the backups
