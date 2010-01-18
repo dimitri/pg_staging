@@ -8,7 +8,7 @@ Homepage: http://github.com/dimitri/pg_staging
 
 Package: pgstaging
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, python (>= 2.4), python-psycopg2, pyton-support
+Depends: ${shlibs:Depends}, ${misc:Depends}, python (>= 2.4), python-psycopg2, python-support
 Description: setup and maintain your staging environments from your production backups
  pg_staging implements commands for playing with your PostgreSQL backups,
  allowing you to expose in devel or prelive environments more than one copy
