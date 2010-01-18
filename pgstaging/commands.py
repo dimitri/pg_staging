@@ -277,6 +277,16 @@ def redump(conffile, args):
     """ dump a database, overwriting the pre-existing dump file if it exists """
     dump(conffile, args, True)
 
+def createdb(conffile, args):
+    """ <dbname> create the target database """
+    usage = "createdb <dbname> [date]"
+    dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
+
+    # now load configuration and restore
+    staging = parse_config(conffile, dbname)
+    staging.set_backup_date(backup_date)
+    staging.createdb()
+
 def restore(conffile, args):
     """ <dbname> restore a database """
     usage = "restore <dbname> [date]"
@@ -723,6 +733,7 @@ exports = {
     "purge":     purge,
     "vacuumdb":  vacuumdb,
     "load":      restore_from_dump,
+    "createdb":  createdb,
     "fetch":     fetch_dump,
     "pitr":      pitr,
     "presql":    pre_source_extra_files,

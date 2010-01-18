@@ -124,6 +124,14 @@ vacuumdb <dbname> [<YYYYMMDD>]::
 
 	 VACUUM ANALYZE given database.
 
+=== detailed commands  ===
+
+Commands you might need to use, that are part of main ones but still
+exposed.
+
+createdb <dbname> [<YYYYMMDD>]::
+
+       only create the target database
 load <dbname> <filename>::
 
 	+pg_restore+ given dump file, this allow to skip the auto

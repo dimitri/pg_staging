@@ -291,6 +291,21 @@ class Staging:
         catalog = r.get_catalog(filename, self.get_nodata_tables())
         return catalog.getvalue()
 
+    def createdb(self):
+        """ only create the target database """
+        from options import VERBOSE, TERSE, DEBUG
+
+        r = restore.pgrestore(self.dated_dbname,
+                              self.dbuser,
+                              self.host,
+                              self.pgbouncer_port,
+                              self.dbowner,
+                              self.maintdb,
+                              self.postgres_major)
+
+        # while connected, try to create the database
+        r.createdb(self.db_encoding)
+
     def restore(self):
         """ launch a pg_restore for the current staging configuration """
         from options import VERBOSE, TERSE, DEBUG
