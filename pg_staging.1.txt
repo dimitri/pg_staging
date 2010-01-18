@@ -283,6 +283,14 @@ verbose::
 
     switch +on+ and +off+ the verbosity of +pg_staging+.
 
+quit::
+
+    exit the console
+
+exit::
+
+    exit the console
+
 == INTERNALS ==
 
 How we use tools. Will get expanded if questions arise.

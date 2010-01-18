@@ -47,6 +47,10 @@ class Console(cmd.Cmd):
         readline.write_history_file(self.histfile)
         return -1
 
+    def do_quit(self, args):
+        """Exits from the console"""
+        return self.do_exit(args)
+
     ## Command definitions to support Cmd object functionality ##
     def do_EOF(self, args):
         """Exit on system end of file character"""
