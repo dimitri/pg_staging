@@ -275,9 +275,9 @@ set <section> <option> <value>::
 
     set given option to given value for current interactive session only.
 
-get <section> <option>::
+get [<section>] <option>::
 
-    print current value of given option.
+    print current value of given option of either given or default section.
 
 verbose::
 

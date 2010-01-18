@@ -12,8 +12,6 @@ What's next, doc?
 
 == Convenience stuff
 
-* have get/set support DEFAULT section (omiting the <dbname> part)
-
 * Implement log_min_messages and client_min_messages and a logfile, for
   cases when you regret you were not using VERBOSE mode, and maybe some
   command to $PAGER the file (show log, catlog, log, logless, ...)

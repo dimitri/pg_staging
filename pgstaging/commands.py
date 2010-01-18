@@ -29,7 +29,8 @@ def get_option(config, section, option, optional=False):
         raise UnknownOptionException, mesg
     return None
 
-def parse_config(conffile, dbname, init_staging = True, force_reload = False):
+def parse_config(conffile,
+                 dbname = None, init_staging = True, force_reload = False):
     """ parse given INI file, and return it all if init_staging is False,
     return a staging object for dbname section otherwise."""
 
@@ -48,7 +49,7 @@ def parse_config(conffile, dbname, init_staging = True, force_reload = False):
             print >>sys.stderr, e
             sys.exit(2)
 
-    if not config.has_section(dbname):
+    if dbname is not None and not config.has_section(dbname):
         mesg = "Error: Please provide a [%s] section" % dbname
         raise UnknownSectionException, mesg
 
@@ -685,14 +686,18 @@ def service_status(conffile, args):
     control_service(conffile, args[0], 'status', usage, args[1:])
 
 def get_config_option(conffile, args):
-    """ <dbname> <option> print the current value of [dbname] option """
-    if len(args) != 2:
-        raise WrongNumberOfArgumentsException, "get dbname option"
+    """ [<dbname>] <option> print the current value of [dbname] option """
+    if len(args) not in (1, 2):
+        raise WrongNumberOfArgumentsException, "get [dbname] option"
 
-    dbname, option = args[0], args[1]
-    config = parse_config(conffile, dbname, init_staging = False)
-
-    print config.get(dbname, option)
+    if len(args) == 1:
+        # DEFAULT, option = args[0]
+        config = parse_config(conffile, init_staging = False)
+        print config.defaults()[args[0]]
+    else:
+        # database args[0], option args[1]
+        config = parse_config(conffile, args[0], init_staging = False)
+        print config.get(args[0], args[1])
 
 def set_config_option(conffile, args):
     """ <dbname> <option> <value> for current session only """
