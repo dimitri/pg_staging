@@ -229,16 +229,16 @@ status <service> <dbname> [<YYYMMDD>]::
 
 === experimental and internal ===
 
-nodata::
+nodata <dbname> [<YYYMMDD>]::
 
 	 Show tables we want to skip loading DATA for, those we are a
 	 subscriber of.
 
-catalog::
+catalog <dbname> [<dumpfile>]::
 
 	 Show the filtered out catalog we'll give to +pg_restore -L+.
 
-triggers::
+triggers <dbname> [<dumpfile>]::
 
 	 Show the schema-qualified functions used by triggers, in order to
 	 be able to follow dependancies when filtering out a schema
