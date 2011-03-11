@@ -10,11 +10,34 @@ What's next, doc?
 
 * add examples now that the local setup is no more part of the distribution
 
+== Fixes and glitches
+
+* drop default to some existing database rather than the one of today
+
+* at drop time, check for existing backends once pgbouncer is paused and
+  terminate them
+
+* createdb should care about pgbouncer setup
+
+* load should use the path from the pg_staging config
+
+* add support for loading contrib scripts
+
+* londiste command should target latest restored database by default
+
+* londiste command sometimes fails to do anything, debug
+
 == Convenience stuff
 
 * Implement log_min_messages and client_min_messages and a logfile, for
   cases when you regret you were not using VERBOSE mode, and maybe some
   command to $PAGER the file (show log, catlog, log, logless, ...)
+
+* Add a copy schema command
+
+* Add a rename schema command
+
+* Add a post-shell command
 
 == Some ideas
 
