@@ -249,7 +249,7 @@ class Staging:
     def get_nodata_tables(self):
         """ return a list of tables to avoid restoring """
 
-        if self.replication:
+        if self.replication and self.dated_dbname:
             l = londiste.londiste(self.replication, self.section,
                                   self.dbname, self.dated_dbname, self.tmpdir)
 
