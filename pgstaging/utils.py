@@ -25,7 +25,7 @@ def run_command(command,
     cmd = command
     if type(cmd) == type('string'):
         cmd = shlex.split(command)
-        
+
     proc = subprocess.Popen(cmd,
                             stdin  = stdin,
                             stdout = stdout,
@@ -40,7 +40,7 @@ def run_command(command,
         # when nothing gets to stderr, add stdout to Detail
         if err.strip() == '':
             err = out
-        
+
         mesg  = 'Error [%d]: %s' % (proc.returncode, command)
         mesg += '\nDetail: %s' % err
         raise SubprocessException, mesg
@@ -70,7 +70,7 @@ def ssh_cat(host, filename):
 def run_client_script(host, args, use_sudo = True):
     """ ssh host sudo CLIENT_SCRIPT args """
     from options import CLIENT_SCRIPT
-    
+
     if use_sudo:
         sudo = "sudo"
     else:

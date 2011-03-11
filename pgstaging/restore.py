@@ -19,7 +19,7 @@ class pgrestore:
 
     def __init__(self, dbname, user, host, port, owner, maintdb, major,
                  restore_cmd = "/usr/bin/pg_restore", st = False,
-                 schemas = [], schemas_nodata = [],
+                 schemas = [], schemas_nodata = [], relname_nodata = [],
                  connect = True, connect_timeout = 3):
         """ dump is a filename """
         from options import VERBOSE
@@ -35,6 +35,7 @@ class pgrestore:
         self.st              = st
         self.schemas         = schemas
         self.schemas_nodata  = schemas_nodata
+        self.relname_nodata  = relname_nodata
         self.connect_timeout = connect_timeout
         self.restore_jobs    = 1
         self.mconn           = None
@@ -96,7 +97,7 @@ class pgrestore:
     def createdb(self, encoding):
         """ connect to remote PostgreSQL server to create the new database"""
         from options import VERBOSE, TERSE
-        
+
         if VERBOSE:
             print "createdb -O %s -E %s %s" % (self.owner,
                                                encoding, self.dbname)
@@ -157,11 +158,11 @@ class pgrestore:
             # mesure pg_restore timing
             import time
             start_time = time.time()
-        
+
             curs.execute('VACUUM ANALYZE')
 
             end_time = time.time()
-            
+
             curs.close()
         except Exception, e:
             raise
@@ -176,7 +177,7 @@ class pgrestore:
 
         if timeout is None:
             timeout = self.connect_timeout
-        
+
         dsn = "dbname='%s' user='%s' host='%s' port=%d connect_timeout=%d" \
               % (self.dbname, self.user, self.host, self.port, timeout)
 
@@ -246,7 +247,7 @@ class pgrestore:
         # utils.run_command will raise a SubprocessException if pg_restore
         # returns an error code (non zero)
         out = utils.run_command(cmd, returning = utils.RET_OUT)
-        
+
         end_time = time.time()
 
         # time elapsed, in secs
@@ -297,7 +298,7 @@ class pgrestore:
         schemas = self.schemas
         if schemas is None:
             schemas = []
-        
+
         md_schemas = schemas
         if self.schemas_nodata:
             md_schemas += self.schemas_nodata
@@ -309,11 +310,11 @@ class pgrestore:
 
         # which triggers calls which function (schema qualified) cache
         triggers = self.get_trigger_funcs(filename)
-        
+
         for line in out.split('\n'):
             if line.strip() == "":
                 continue
-            
+
             filter_out = False
 
             if line.find('SCHEMA') > -1            \
@@ -347,7 +348,7 @@ class pgrestore:
 
                     elif b == 'CLASS':
                         schema = c
-                        
+
                     elif b == 'DATA':
                         schema = c
                         table  = d
@@ -384,7 +385,7 @@ class pgrestore:
                                 if s not in schemas:
                                     filter_out = True
                                     break
-                                
+
                     # filter out TABLE DATA section for schemas_nodata
                     if not filter_out and self.schemas_nodata is not None \
                            and a == 'TABLE' and b == 'DATA' \
@@ -396,13 +397,13 @@ class pgrestore:
                         for s, t in splitted_tables:
                             if not filter_out and schema == s and table == t:
                                 filter_out = True
-                                
+
                 except ValueError, e:
                     # unpack error, line won't match anything, don't filter
                     # out
                     pass
 
-            # filter_out means we turn it into a comment 
+            # filter_out means we turn it into a comment
             if filter_out:
                 catalog.write(';%s\n' % line)
             else:
@@ -414,7 +415,7 @@ class pgrestore:
         else:
             # http://www.python.org/doc/2.4.4/lib/bltin-file-objects.html
             whence = 1
-            
+
         catalog.seek(-1, whence)
         catalog.truncate()
 
@@ -430,7 +431,7 @@ class pgrestore:
         temp.close()
 
         return realname
-        
+
     ##
     # In the catalog, we have such TRIGGER lines:
     #
@@ -486,7 +487,7 @@ class pgrestore:
                 if current_trigger not in triggers[current_schema]:
                     # add an empty procedures list
                     triggers[current_schema][current_trigger] = []
-                
+
                 continue
 
             if line.find(returns_trigger) > -1:
@@ -510,7 +511,7 @@ class pgrestore:
 
                     if pname not in triggers[current_schema][current_trigger]:
                         triggers[current_schema][current_trigger].append(pname)
-                
+
                 if line.find(';') > -1:
                     current_trigger = None
 
@@ -578,7 +579,7 @@ class pgrestore:
     def set_database_search_path(self, search_path):
         """ ALTER DATABASE self.dbname SET search_path TO ... """
         from options import VERBOSE
-        
+
         try:
             sp  = ", ".join(search_path)
             sql = 'ALTER DATABASE %s SET search_path TO %s;' \
@@ -586,7 +587,7 @@ class pgrestore:
 
             if VERBOSE:
                 print sql
-            
+
             curs = self.mconn.cursor()
             curs.execute(sql)
             self.mconn.commit()
@@ -645,7 +646,7 @@ class pgrestore:
         # returns an error code (non zero)
         out = utils.run_command(cmd, stdout = f)
         f.close()
-        
+
         end_time = time.time()
 
         # time elapsed, in secs

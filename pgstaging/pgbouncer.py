@@ -25,12 +25,12 @@ class pgbouncer:
     def get_data(self, command):
         """ get pgbouncer SHOW <command> data """
         alldata = []
-        
+
         psql = 'psql -h %s -p %s -U %s %s -c "SHOW %s;" 2>/dev/null' \
                   % (self.host, self.port, self.user, self.dbname, command)
 
         i = 0
-        
+
         out  = os.popen(psql)
         line = 'stupid init value'
         while line != '':
@@ -148,7 +148,7 @@ class pgbouncer:
         fd, realname = tempfile.mkstemp(prefix = '/tmp/pgbouncer.',
                                         suffix = '.ini')
         temp = os.fdopen(fd, "wb")
-        conf.write(temp)        
+        conf.write(temp)
         temp.close()
 
         if VERBOSE:

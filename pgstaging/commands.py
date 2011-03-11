@@ -90,6 +90,11 @@ def parse_config(conffile,
                 schemas_nodata = [s.strip() for s in schemas_nodata.split(',')]
             staging.schemas_nodata = schemas_nodata
 
+            relname_nodata = get_option(config, dbname, "tablename_nodata_regexp", True)
+            if relname_nodata:
+                relname_nodata = [s.strip() for s in relname_nodata.split(',')]
+            staging.relname_nodata = relname_nodata
+
             search_path = get_option(config, dbname, "search_path", True)
             if search_path:
                 search_path = [s.strip() for s in search_path.split(',')]
@@ -117,7 +122,7 @@ def parse_config(conffile,
 
             if config.has_option(dbname, "sql_path"):
                 sql_path = config.get(dbname, "sql_path")
-            
+
             if sql_path:
                 # be nice, expand ~
                 sql_path = os.path.join(os.path.expanduser(sql_path), dbname)
@@ -192,19 +197,19 @@ def duration_pprint(duration):
         m  = int((duration - 3600 * h) / 60)
         s  = duration - 3600 * h - 60 * m + 0.5
         return '%2dh%02dm%03.1f' % (h, m, s)
-    
+
     elif duration > 60:
         m  = int(duration / 60)
         s  = duration - 60 * m
         return ' %02dm%06.3f' % (m, s)
-        
+
     else:
         return '%6.3fs' % duration
 
 ##
 ## Facilities to run commands, including parsing when necessary
 ##
-    
+
 def run_command(conffile, command, args):
     """ run given pg_staging command """
     import sys
@@ -214,7 +219,7 @@ def run_command(conffile, command, args):
     if command not in exports:
         print >>sys.stderr, "Error: no command '%s'" % command
         raise UnknownCommandException
-        
+
     try:
         exports[command](conffile, args)
     except Exception, e:
@@ -228,12 +233,12 @@ def parse_input_line_and_run_command(conffile, line):
     """ parse input line """
     from options import DEBUG, COMMENT
     import shlex, sys
-            
+
     try:
         if len(line) > 0 and line[0] != COMMENT:
             cli = shlex.split(line, COMMENT)
             run_command(conffile, cli[0], cli[1:])
-            
+
     except Exception, e:
         raise
 
@@ -241,7 +246,7 @@ def parse_input_line_and_run_command(conffile, line):
 ## From now on, pgstaging commands, shared by pg_staging.py and console.py
 ##
 
-    
+
 def init_cluster(conffile, args):
     """ <dbname> """
     usage = "init <dbname>"
@@ -260,7 +265,7 @@ def dump(conffile, args, force = False):
         raise WrongNumberOfArgumentsException, usage
 
     dbname = args[0]
-    
+
     if len(args) == 1:
         import datetime
         filename = '%s.%s.dump' % (dbname, datetime.date.today().isoformat())
@@ -308,7 +313,7 @@ def restore_from_dump(conffile, args):
 
     if len(args) != 2:
         raise WrongNumberOfArgumentsException, "load <dbname> <dumpfile>"
-    
+
     staging = parse_config(conffile, args[0])
     secs = staging.load(args[1])
 
@@ -360,7 +365,7 @@ def pitr(conffile, args):
     dbname = args[0]
     target = None
     value  = None
-    
+
     if len(args) == 3:
         if args[1] not in ('time', 'xid'):
             raise WrongNumberOfArgumentsException, usage
@@ -413,7 +418,7 @@ def list_backups(conffile, args):
     """ list available backups for a given database """
     if len(args) != 1:
         raise WrongNumberOfArgumentsException, "backups <dbname>"
-    
+
     dbname = args[0]
     staging = parse_config(conffile, dbname)
     for backup, size in staging.list_backups():
@@ -438,7 +443,7 @@ def show_setting(conffile, args):
     if len(args) == 2:
         setting = args[1]
         dbname, backup_date = parse_args_for_dbname_and_date(args[0:1], usage)
-        
+
     elif len(args) == 3:
         setting = args[2]
         dbname, backup_date = parse_args_for_dbname_and_date(args[0:2], usage)
@@ -487,17 +492,17 @@ def show_all_dbsizes(conffile, args):
         regexp = re.compile(args[1])
 
         args = [x for x in config.sections() if regexp.search(x)]
-    
+
     for db in args:
         # now load configuration and restore
         staging = parse_config(conffile, db)
 
         print db
-        
+
         for d, s, p in staging.dbsizes():
             if s > 0:
                 total_size += s
-                
+
             print "%25s: %s" % (d, p)
 
     print "%-25s= %s" % ('Total', staging.pg_size_pretty(total_size))
@@ -542,12 +547,12 @@ def resume_pgbouncer_database(conffile, args):
     else:
         staging.set_backup_date(backup_date)
         dbname = staging.dated_dbname
-        
+
     staging.pgbouncer_resume(dbname)
-    
+
 def switch(conffile, args):
     """ <dbname> <bdate> switch default pgbouncer config to dbname_bdate """
-    usage = "switch <dbname> [date]"    
+    usage = "switch <dbname> [date]"
     dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
 
     # now load configuration and restore
@@ -557,7 +562,7 @@ def switch(conffile, args):
 
 def drop(conffile, args):
     """ <dbname> drop given database """
-    usage = "drop <dbname> [date]"    
+    usage = "drop <dbname> [date]"
     dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
 
     # now load configuration and restore
@@ -612,7 +617,7 @@ def triggers(conffile, args):
 def set_database_search_path(conffile, args):
     """ alter database <dbname> set search_path """
     # experimental only
-    usage = "search_path <dbname> [date]"    
+    usage = "search_path <dbname> [date]"
     dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
 
     # now load configuration and restore
@@ -622,7 +627,7 @@ def set_database_search_path(conffile, args):
 
 def list_nodata_tables(conffile, args):
     """ list tables to restore without their data """
-    usage = "nodata <dbname> [date]"    
+    usage = "nodata <dbname> [date]"
     dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
 
     # now load configuration and restore
@@ -633,7 +638,7 @@ def list_nodata_tables(conffile, args):
 
 def prepare_then_run_londiste(conffile, args):
     """ prepare londiste files for providers of given dbname section """
-    usage = "londiste <dbname> [date]"    
+    usage = "londiste <dbname> [date]"
     dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
 
     # now load configuration and restore

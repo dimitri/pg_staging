@@ -163,6 +163,13 @@ schemas_nodata::
 	List of schema (comma separated) to restore without content. The
 	+pg_restore+ catalog +TABLE DATA+ sections will get filtered out.
 
+tablename_nodata_regexp::
+
+	List of table names regexp (comma separated) to restore without
+	content. The +pg_restore+ catalog +TABLE DATA+ sections will get
+	filtered out.  The regexp is applied against +schemaname.tablename+
+	and non-anchored by default.
+
 == EXAMPLE ==
 
   [DEFAULT]

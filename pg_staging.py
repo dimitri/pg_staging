@@ -24,7 +24,7 @@ def parse_options():
 
     usage  = "%prog [-c <config_filename>] command dbname <args>"
     parser = OptionParser(usage = usage)
-    
+
     parser.add_option("--version", action = "store_true",
                       dest    = "version",
                       default = False,
@@ -105,7 +105,7 @@ def parse_options():
     if len(args) == 0:
         if pgstaging.options.VERBOSE:
             print "No arguments, want console?"
-        raise NoArgsCommandLineException, opts.config        
+        raise NoArgsCommandLineException, opts.config
 
     # we return configuration filename, command, command args
     return opts.config, args[0], args[1:]
@@ -141,7 +141,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
         else:
-            # loop over input lines            
+            # loop over input lines
             for line in sys.stdin:
                 try:
                     commands.parse_input_line_and_run_command(line)

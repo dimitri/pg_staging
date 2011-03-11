@@ -52,12 +52,12 @@ class londiste:
         """ list all tickers daemon we'll need for this section/dbname """
 
         tickers = []
-        
+
         for p, host in self.providers():
             if not self.config.has_option(p, 'ticker'):
                 mesg = "Replication section '%s' has no 'ticker' option" % p
                 raise UnknownOptionException, mesg
-            
+
             t = self.config.get(p, 'ticker')
 
             if not self.config.has_section(t):
@@ -79,7 +79,7 @@ class londiste:
             # the host we return is the host where to run the ticker
             pgq = pgqadm(self.config, t, self.dbname, self.instance, self.tmpdir)
             yield pgq, self.config.get(t, 'host')
-            
+
         return
 
     def job_name(self, provider):
@@ -112,7 +112,7 @@ class londiste:
         for s, host in self.subscribers():
             p = self.clean_provides( self.config.get(s, 'provides') )
             tables = tables.union( set(p) )
-                        
+
         return tables
 
     def prepare_config(self, provider):
@@ -157,7 +157,7 @@ class londiste:
         filename = "%s/%s.%s.ini" % (self.tmpdir, basename, self.dbdate)
 
         return filename
-    
+
     def write(self, provider, conf = None):
         """ write out computed londiste INI to a file """
         from options import VERBOSE
@@ -165,7 +165,7 @@ class londiste:
         if conf is None:
             conf = self.prepare_config(provider)
         filename = self.get_config_filename(provider, conf)
-        
+
         fd = open(filename, "wb")
         conf.write(fd)
         fd.close()
@@ -175,7 +175,7 @@ class londiste:
     def init_remote(self, provider, host, filename, use_sudo):
         """ send the londiste file for provider to the remote host """
         from options import VERBOSE
-        
+
         utils.scp(host, filename, '/tmp')
 
         remote_filename = os.path.basename(filename)
@@ -185,7 +185,7 @@ class londiste:
 
         if VERBOSE:
             print out
-        
+
         return remote_filename
 
     def start(self, provider, host, filename, use_sudo, init = True):
@@ -201,7 +201,7 @@ class londiste:
         if VERBOSE:
             print out
 
-        return 
+        return
 
     def clean(self, ignore = False):
         """ rm -rf self.tmpdir """
@@ -241,7 +241,7 @@ class pgqadm:
         """ return the filename where to put the configuration by default """
         if conf is None:
             conf = self.prepare_config()
-            
+
         basename = conf.get('pgqadm', 'job_name').replace('_', '-')
         filename = "%s/ticker.%s.%s.ini" % (self.tmpdir, basename, self.dbdate)
 
@@ -292,7 +292,7 @@ class pgqadm:
     def init_remote(self, host, filename, use_sudo):
         """ send the pgqadm file to the remote host """
         from options import VERBOSE
-        
+
         utils.scp(host, filename, '/tmp')
         remote_filename = os.path.basename(filename)
 
@@ -317,5 +317,5 @@ class pgqadm:
         if VERBOSE:
             print out
 
-        return 
-        
+        return
+

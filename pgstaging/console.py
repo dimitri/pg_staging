@@ -27,9 +27,9 @@ class Console(cmd.Cmd):
         """ pg_staging console """
         from options import VERBOSE
         cmd.Cmd.__init__(self)
-        
+
         self.prompt = "pg_staging> "
-        self.intro  = "Welcome to pg_staging %s." % options.VERSION        
+        self.intro  = "Welcome to pg_staging %s." % options.VERSION
         self.conffile = None
         self.config   = None
 
@@ -152,11 +152,11 @@ class Console(cmd.Cmd):
         """
         return stop
 
-    def emptyline(self):    
+    def emptyline(self):
         """Do nothing on empty input line"""
         pass
 
-    def default(self, line):       
+    def default(self, line):
         """Called on an input line when the command prefix is not
            recognized.  In that case we refer to
            commands.parse_input_line_and_run_command() function.
@@ -223,4 +223,4 @@ class Console(cmd.Cmd):
 if __name__ == '__main__':
         console = Console()
         console . cmdloop()
-        
+

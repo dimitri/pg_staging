@@ -74,6 +74,7 @@ class Staging:
 
         self.schemas         = []
         self.schemas_nodata  = []
+        self.relname_nodata  = []
         self.search_path     = []
 
         # init separately, we don't have the information when we create the
@@ -102,14 +103,14 @@ class Staging:
     def set_backup_date(self, date = None):
         """ set the backup date choosen by the user """
         import datetime
-        
+
         if date is None or date == "today":
             backup_date = datetime.date.today()
         else:
             backup_date = self.parse_date(date)
 
         self.backup_date = backup_date.isoformat()
-            
+
         self.dated_dbname = "%s_%s" % (self.dbname,
                                        self.backup_date.replace('-', ''))
 
@@ -130,7 +131,7 @@ class Staging:
     def list_backups(self):
         """ return a list of available backup files for self.dbname """
         from apache_listing import ApacheListingParser
-        
+
         conn = httplib.HTTPConnection(self.backup_host)
         conn.request("GET", self.backup_base_url)
         r = conn.getresponse()
@@ -146,7 +147,7 @@ class Staging:
         for chunk in r.read():
             buf.write(chunk)
 
-        # don't forget to re-position 
+        # don't forget to re-position
         buf.seek(0)
         alp = ApacheListingParser(buf, self.dbname)
         return alp.parse()
@@ -161,7 +162,7 @@ class Staging:
             print "fetching '%s'\n    from http://%s%s" % (filename,
                                                            host,
                                                            url)
-            
+
         import time
         start_time = time.time()
 
@@ -193,7 +194,7 @@ class Staging:
         """ init a PostgreSQL cluster from pg_dumpall -g sql script """
         # unused here, in fact
         self.dated_dbname = None
-        
+
         basename = "%s.%s" % (self.section, os.path.basename(self.dumpall_url))
         filename = self.wget(self.backup_host, self.dumpall_url, basename)
 
@@ -223,14 +224,14 @@ class Staging:
 
         if self.maintdb != 'postgres':
             self.pgbouncer_del_database('postgres')
-        
-        return    
+
+        return
 
     def get_dump(self):
         """ get the dump file from the given URL """
         if not self.backup_date:
             raise UnknownBackupDateException
-        
+
         filename = "%s.%s.dump" % (self.dbname, self.backup_date)
         return self.wget(self.backup_host,                            # host
                          "%s/%s" % (self.backup_base_url, filename),  # url
@@ -239,7 +240,7 @@ class Staging:
     def do_remove_dump(self, filename):
         """ remove dump when self.remove_dump says so """
         from options import VERBOSE
-        
+
         if self.remove_dump:
             if VERBOSE:
                 print "rm %s" % filename
@@ -253,7 +254,7 @@ class Staging:
                                   self.dbname, self.dated_dbname, self.tmpdir)
 
             return l.get_nodata_tables()
-        
+
         return
 
     def get_triggers(self, filename):
@@ -286,6 +287,7 @@ class Staging:
                               self.pg_restore_st,
                               self.schemas,
                               self.schemas_nodata,
+                              self.relname_nodata,
                               connect = False)
 
         catalog = r.get_catalog(filename, self.get_nodata_tables())
@@ -347,7 +349,7 @@ class Staging:
         try:
             if VERBOSE:
                 os.system("ls -l %s" % filename)
-            
+
             r.restore_jobs = self.restore_jobs
             secs = r.pg_restore(filename, self.get_nodata_tables())
 
@@ -395,11 +397,11 @@ class Staging:
             x = int(self.backup_date)
 
             self.dated_dbname = "%s_%s" % (self.dbname, self.backup_date)
-            
+
         except ValueError, e:
             mesg = "load: '%s' isn't a valid dump file name" % filename
             raise ParseDumpFileException, mesg
-        
+
         # see comments in previous self.restore() method
         r = restore.pgrestore(self.dated_dbname,
                               self.dbuser,
@@ -419,7 +421,7 @@ class Staging:
         try:
             if VERBOSE:
                 os.system("ls -l %s" % filename)
-            
+
             r.restore_jobs = self.restore_jobs
             secs = r.pg_restore(filename, self.get_nodata_tables())
 
@@ -463,7 +465,7 @@ class Staging:
 
         if not TERSE:
             os.system('ls -lh %s' % fullname)
-        
+
         return secs
 
     def pitr(self, target, value):
@@ -474,7 +476,7 @@ class Staging:
         if self.base_backup_cmd is None or self.wal_archive_cmd is None \
            or self.pitr_basedir is None:
             raise Exception, "Error: please configure PITR"
-        
+
         cluster = datetime.date.today().isoformat().replace('-', '')
         cluster = os.path.join(self.pitr_basedir, cluster)
 
@@ -527,7 +529,7 @@ class Staging:
     def pgbouncer_del_database(self, dbname):
         """ edit pgbouncer configuration file to add a database """
         from options import VERBOSE
-        
+
         p = pgbouncer.pgbouncer(self.pgbouncer_conf,
                                 self.dbuser,
                                 self.host,
@@ -550,7 +552,7 @@ class Staging:
         # skip scp when target is localhost
         if self.host not in ("localhost", "127.0.0.1"):
             utils.scp(self.host, newconffile, '/tmp')
-            
+
         utils.run_client_script(self.host,
                                 ["pgbouncer", newconffile, self.pgbouncer_port],
                                 self.use_sudo)
@@ -559,14 +561,14 @@ class Staging:
         # when target host is localhost, we used mv already
         if self.host not in ("localhost", "127.0.0.1"):
             os.unlink(newconffile)
-                
+
     def drop(self, dbname = None):
         """ drop the given database: dbname_%(backup_date) """
         from options import TERSE
-        
+
         if dbname is None:
             dbname = self.dated_dbname
-        
+
         r = restore.pgrestore(dbname,
                               self.dbuser,
                               self.host,
@@ -594,7 +596,7 @@ class Staging:
     def purge(self):
         """ keep only self.keep_bases databases """
         from options import TERSE, VERBOSE
-        
+
         dlist = [d[1].strip('"')
                  for d in self.pgbouncer_databases()
                  if d[0].strip('"') != self.dbname \
@@ -605,8 +607,8 @@ class Staging:
             if not TERSE:
                 print "cleandb: we keep %d databases and have only %d" %\
                       (self.keep_bases, len(dlist)) \
-                      + ", skipping" 
-                
+                      + ", skipping"
+
             return
 
         for d in dlist[:-2]:
@@ -632,7 +634,7 @@ class Staging:
             dated_dbname = dbname
         else:
             dated_dbname = self.dated_dbname
-            
+
         r = restore.pgrestore(dated_dbname,
                               self.dbuser,
                               self.host,
@@ -648,7 +650,7 @@ class Staging:
         """ generate database name, sizes for all databases in the section """
         import psycopg2
         from options import VERBOSE
-        
+
         for name, database, host, port in self.pgbouncer_databases():
             if name != self.dbname and name.find(self.dbname) == 0:
                 try:
@@ -698,7 +700,7 @@ class Staging:
 
         if phase == utils.POST_SQL:
             sql_path = os.path.join(self.sql_path, 'post')
-            
+
         elif phase == utils.PRE_SQL:
             sql_path = os.path.join(self.sql_path, 'pre')
 
@@ -709,7 +711,7 @@ class Staging:
             if VERBOSE:
                 print "skipping '%s' which is not a directory" % sql_path
             return
-        
+
         r = restore.pgrestore(self.dbname,
                               self.dbuser,
                               self.host,
@@ -731,7 +733,7 @@ class Staging:
             if VERBOSE:
                 print out
 
-        return 
+        return
 
     def show(self, setting):
         """ return setting value """
@@ -814,9 +816,9 @@ class Staging:
             for p, host in l.providers():
                 filename = l.write(p)
                 l.start(p, host, filename, self.use_sudo)
-                
+
                 yield p, filename
-                
+
         return
 
 
@@ -826,7 +828,7 @@ class Staging:
 
         if service not in ('londiste', 'ticker', 'pgbouncer'):
             raise Exception, "Error: unknown service '%s'" % service
-        
+
         args = [action, service]
 
         if service in ('londiste', 'ticker') and not self.replication:

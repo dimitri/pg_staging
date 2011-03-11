@@ -28,7 +28,7 @@ class ApacheListingParser(HTMLParser):
             self.feed(line)
 
         return self.files
-    
+
     def handle_starttag(self, tag, attrs):
         if tag == 'a':
             self.buffering = True
@@ -69,5 +69,5 @@ class ApacheListingParser(HTMLParser):
         if self.buffering:
             if data.strip('\r\n') != '':
                 self.buffer += data
-        
-            
+
+
