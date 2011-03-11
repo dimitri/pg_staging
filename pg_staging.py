@@ -144,7 +144,7 @@ if __name__ == '__main__':
             # loop over input lines
             for line in sys.stdin:
                 try:
-                    commands.parse_input_line_and_run_command(line)
+                    commands.parse_input_line_and_run_command(conffile, line)
                 except StagingRuntimeException, e:
                     sys.exit(1)
                 except Exception, e:
