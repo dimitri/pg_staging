@@ -2,7 +2,7 @@
 ## pg_restore support class
 ##
 
-import os, psycopg2
+import os, re, psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 import utils
@@ -291,7 +291,9 @@ class pgrestore:
         #6014; 2606 56535 FK CONSTRAINT archives rev_2001_id_compte_fkey webadmin
 
         # tables are schema.table, we want (schema, table)
-        splitted_tables = [(x.split('.')[0], x.split('.')[1]) for x in tables]
+        splitted_tables = []
+        if tables:
+            splitted_tables = [(x.split('.')[0], x.split('.')[1]) for x in tables]
 
         # for meta data (md_) commands, filter_out what's neither in schemas
         # nor in schemas_nodata
@@ -392,11 +394,19 @@ class pgrestore:
                            and schema in self.schemas_nodata:
                         filter_out = True
 
-                    # then tables
+                    # then additional tables given by caller
                     if not filter_out and a == 'TABLE' and b == 'DATA':
                         for s, t in splitted_tables:
                             if not filter_out and schema == s and table == t:
                                 filter_out = True
+
+                    # then tables filtered out by regexp in the config
+                    if not filter_out and a == 'TABLE' and b == 'DATA':
+                        qualified_relname = "%s.%s" % (schema, table)
+                        for regexp in self.relname_nodata:
+                            if re.search(regexp, qualified_relname):
+                                filter_out = True
+                                break
 
                 except ValueError, e:
                     # unpack error, line won't match anything, don't filter
