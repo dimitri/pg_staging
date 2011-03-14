@@ -167,6 +167,10 @@ The default expression is used when date is None and can be one of 'today',
         """ extract date from foo_db.2011-03-11.dump """
         return self.parse_date(filename.split(".")[1])
 
+    def parse_dbname_date(self, dbname):
+        """ extract date from allopass_db_20100209 """
+        return self.parse_date(dbname.split("_")[-1])
+
     def get_latest_backup(self):
         """ return the latest backup date available """
         b = None
@@ -638,15 +642,43 @@ The default expression is used when date is None and can be one of 'today',
         # and remove it from pgbouncer configuration
         self.pgbouncer_del_database(dbname)
 
-    def purge(self):
-        """ keep only self.keep_bases databases """
-        from options import TERSE, VERBOSE
-
+    def pgbouncer_dbnames(self):
+        """return sorted list of databases available in pgbouncer and
+        matching self.dbname
+        """
         dlist = [d[1].strip('"')
                  for d in self.pgbouncer_databases()
                  if d[0].strip('"') != self.dbname \
                  and d[1].strip('"').startswith(self.dbname)]
         dlist.sort()
+
+        return dlist
+
+    def get_latest_dbname(self):
+        """ return the oldest available (through pgbouncer) """
+        latest = None
+        for dbname in self.pgbouncer_dbnames():
+            d = self.parse_dbname_date(dbname)
+            if latest is None or d > latest[0]:
+                latest = d, dbname
+
+        return latest[1]
+
+    def get_oldest_dbname(self):
+        """ return the oldest available (through pgbouncer) """
+        oldest = None
+        for dbname in self.pgbouncer_dbnames():
+            d = self.parse_dbname_date(dbname)
+            if oldest is None or d < oldest[0]:
+                oldest = d, dbname
+
+        return oldest[1]
+
+    def purge(self):
+        """ keep only self.keep_bases databases """
+        from options import TERSE, VERBOSE
+
+        dlist = self.pgbouncer_dbnames()
 
         if len(dlist) <= self.keep_bases:
             if not TERSE:

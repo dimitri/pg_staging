@@ -417,7 +417,7 @@ def list_databases(conffile, args):
         for section in config.sections():
             print section
 
-    elif len(args) == 1:
+    elif len(args) in (1, 2):
         list_pgbouncer_databases(conffile, args)
 
     else:
@@ -529,14 +529,23 @@ def show_all_dbsizes(conffile, args):
 
 def list_pgbouncer_databases(conffile, args):
     """ list configured pgbouncer databases """
-    usage = "pgbouncer <dbname>"
-    if len(args) != 1:
+    usage = "pgbouncer <dbname> [oldest|latest]"
+    if len(args) not in (1, 2) or \
+       (len(args) == 2 and args[1] not in ('oldest', 'latest')):
         raise WrongNumberOfArgumentsException, usage
 
+    target = None
     dbname = args[0]
     staging = parse_config(conffile, dbname)
+
+    if len(args) == 2 and args[1] == 'oldest':
+        target = staging.get_oldest_dbname()
+    elif len(args) == 2 and args[1] == 'latest':
+        target = staging.get_latest_dbname()
+
     for name, database, host, port in staging.pgbouncer_databases():
-        print "%25s %25s %s:%s" % (name, database, host, port)
+        if target is None or name == target:
+            print "%25s %25s %s:%s" % (name, database, host, port)
 
 def pause_pgbouncer_database(conffile, args):
     """ pause <dbname> [date] (when no date given, not expanded to today) """

@@ -155,7 +155,7 @@ postsql <dbname> [<YYYYMMDD>]::
 
 ===  listings ===
 
-databases [<dbname>]::
+databases [<dbname>] [oldest|latest]::
 
 	Show the list of database sections parsed into the .ini file.  When
 	given a +<dbname>+ show the list of known databases from +pgbouncer+.
@@ -183,9 +183,10 @@ show <dbname> [<YYYYMMDD>] <setting>::
 
 === pgbouncer ===
 
-pgbouncer <dbname>::
+pgbouncer <dbname> [oldest|latest]::
 
-	 Show +pgbouncer+ database listing for given dbname.
+	 Show +pgbouncer+ database listing for given dbname.  When given
+	 +oldest+ or +latest+, only display this one database line.
 
 pause <dbname> [<YYYMMDD>]::
 
