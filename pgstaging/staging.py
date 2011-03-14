@@ -518,8 +518,13 @@ The default expression is used when date is None and can be one of 'today',
                               self.pg_restore_st,
                               self.schemas,
                               self.schemas_nodata)
-        r.createdb(self.db_encoding)
-        self.pgbouncer_add_database()
+
+        # create the target database if it does not already exists
+        exists = self.dated_dbname in [n for n,d,h,p
+                                       in self.pgbouncer_databases()]
+        if not exists:
+            r.createdb(self.db_encoding)
+            self.pgbouncer_add_database()
 
         # now restore the dump
         try:
