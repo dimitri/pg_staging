@@ -52,7 +52,7 @@ class ApacheListingParser(HTMLParser):
 
         if self.current_tag == 'td':
             if self.buffering and self.current_file:
-                self.files.append((self.current_file, self.buffer))
+                self.files.append((self.buffer, self.current_file))
 
             self.buffering = False
 

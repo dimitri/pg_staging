@@ -100,12 +100,23 @@ class Staging:
         else:
             raise ValueError, "Unable to parse date: '%s'" % date
 
-    def set_backup_date(self, date = None):
-        """ set the backup date choosen by the user """
+    def set_backup_date(self, date = None, default = 'today'):
+        """set the backup date choosen by the user
+
+The default expression is used when date is None and can be one of 'today',
+'latest' for the latest available backup, or 'oldest' for the oldest one.
+        """
         import datetime
 
-        if date is None or date == "today":
+        if date is None:
+            date = default
+
+        if date == "today":
             backup_date = datetime.date.today()
+        elif date == 'oldest':
+            backup_date = self.parse_backup_file_date(self.get_oldest_backup())
+        elif date == 'latest':
+            backup_date = self.parse_backup_file_date(self.get_lastest_backup())
         else:
             backup_date = self.parse_date(date)
 
@@ -151,6 +162,40 @@ class Staging:
         buf.seek(0)
         alp = ApacheListingParser(buf, self.dbname)
         return alp.parse()
+
+    def parse_backup_file_date(self, filename):
+        """ extract date from foo_db.2011-03-11.dump """
+        return self.parse_date(filename.split(".")[1])
+
+    def get_latest_backup(self):
+        """ return the latest backup date available """
+        b = None
+        d = None
+        for size, backup in self.list_backups():
+            c = self.parse_backup_file_date(backup)
+            if d is None:
+                d = c
+                b = size, backup
+            else:
+                if d < c:
+                    d = c
+                    b = size, backup
+        return b
+
+    def get_oldest_backup(self):
+        """ return the oldest backup date available """
+        b = None
+        d = None
+        for size, backup in self.list_backups():
+            c = self.parse_backup_file_date(backup)
+            if d is None:
+                d = c
+                b = size, backup
+            else:
+                if d > c:
+                    d = c
+                    b = size, backup
+        return b
 
     def wget(self, host, url, outfile):
         """ fetch the given url at given host and return where we stored it """

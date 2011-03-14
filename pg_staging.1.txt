@@ -159,9 +159,10 @@ databases::
 
 	Show the list of database sections parsed into the .ini file.
 
-backups <dbname> [<YYYYMMDD>]::
+backups <dbname> [oldest|latest]::
 	
-	Show <dbname> available backups on the http host.
+	Show <dbname> available backups on the http host.  When given
+	'oldest' or 'latest', only list this backup.
 
 dbsize <dbname> [<YYYMMDD>]::
 
