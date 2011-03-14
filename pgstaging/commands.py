@@ -300,7 +300,7 @@ def restore(conffile, args):
 
     # now load configuration and restore
     staging = parse_config(conffile, dbname)
-    staging.set_backup_date(backup_date)
+    staging.set_backup_date(backup_date, 'latest')
     wget_t, pgrestore_t, vacuumdb_t = staging.restore()
 
     print "  fetching:", duration_pprint(wget_t)
@@ -327,7 +327,7 @@ def fetch_dump(conffile, args):
 
     # now load configuration and fetch
     staging = parse_config(conffile, dbname)
-    staging.set_backup_date(backup_date)
+    staging.set_backup_date(backup_date, 'latest')
     staging.get_dump()
 
     print "  timing", duration_pprint(staging.wget_timing)
