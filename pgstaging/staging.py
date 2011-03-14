@@ -138,6 +138,7 @@ The default expression is used when date is None and can be one of 'today',
     def set_dbname_date(self, date, default = 'oldest'):
         """set the database date to be found in its name, see
         set_backup_date for possible defaults """
+        import datetime
 
         if date is None:
             date = default

@@ -384,7 +384,7 @@ def pre_source_extra_files(conffile, args):
 
     # now load configuration and source extra sql files
     staging = parse_config(conffile, dbname)
-    staging.set_backup_date(backup_date)
+    staging.set_dbname_date(backup_date, 'active')
     for sql in staging.psql_source_files(utils.PRE_SQL):
         print "psql -f %s" % sql
 
@@ -396,7 +396,7 @@ def post_source_extra_files(conffile, args):
 
     # now load configuration and source extra sql files
     staging = parse_config(conffile, dbname)
-    staging.set_backup_date(backup_date)
+    staging.set_dbname_date(backup_date, 'active')
     for sql in staging.psql_source_files(utils.POST_SQL):
         print "psql -f %s" % sql
 
@@ -450,7 +450,7 @@ def psql_connect(conffile, args):
     dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
 
     staging = parse_config(conffile, dbname)
-    staging.set_backup_date(backup_date)
+    staging.set_dbname_date(backup_date, 'active')
     return staging.psql_connect()
 
 def show_setting(conffile, args):
@@ -469,7 +469,7 @@ def show_setting(conffile, args):
         dbname, backup_date = parse_args_for_dbname_and_date(args[0:2], usage)
 
     staging = parse_config(conffile, dbname)
-    staging.set_backup_date(backup_date)
+    staging.set_dbname_date(backup_date, 'active')
     value = staging.show(setting)
     print "%25s: %s" % (setting, value)
 
@@ -479,7 +479,7 @@ def show_dbsize(conffile, args):
     dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
 
     staging = parse_config(conffile, dbname)
-    staging.set_backup_date(backup_date)
+    staging.set_dbname_date(backup_date, 'active')
     name, size, pretty = staging.dbsize()
     print "%25s: %s" % (name, pretty)
 
@@ -586,7 +586,7 @@ def switch(conffile, args):
 
     # now load configuration and restore
     staging = parse_config(conffile, dbname)
-    staging.set_backup_date(backup_date)
+    staging.set_dbname_date(backup_date, 'latest')
     staging.switch()
 
 def drop(conffile, args):
@@ -596,7 +596,7 @@ def drop(conffile, args):
 
     # now load configuration and restore
     staging = parse_config(conffile, dbname)
-    staging.set_backup_date(backup_date)
+    staging.set_dbname_date(backup_date, 'oldest')
     staging.drop()
 
 def catalog(conffile, args):
@@ -651,7 +651,7 @@ def set_database_search_path(conffile, args):
 
     # now load configuration and restore
     staging = parse_config(conffile, dbname)
-    staging.set_backup_date(backup_date)
+    staging.set_dbname_date(backup_date, 'active')
     staging.set_database_search_path()
 
 def list_nodata_tables(conffile, args):
@@ -661,7 +661,7 @@ def list_nodata_tables(conffile, args):
 
     # now load configuration and restore
     staging = parse_config(conffile, dbname)
-    staging.set_backup_date(backup_date)
+    staging.set_dbname_date(backup_date, 'active')
     for t in staging.get_nodata_tables():
         print '%s' % t
 
@@ -672,7 +672,7 @@ def prepare_then_run_londiste(conffile, args):
 
     # now load configuration and restore
     staging = parse_config(conffile, dbname)
-    staging.set_backup_date(backup_date)
+    staging.set_dbname_date(backup_date, 'active')
     for provider, filename in staging.prepare_then_run_londiste():
         print "%25s: %s" % (provider, os.path.basename(filename))
 
@@ -680,7 +680,7 @@ def control_service(conffile, service, action, usage, args):
     """ internal stuff """
     dbname, backup_date = parse_args_for_dbname_and_date(args, usage)
     staging = parse_config(conffile, dbname)
-    staging.set_backup_date(backup_date)
+    staging.set_dbname_date(backup_date, 'active')
     staging.control_service(service, action)
 
 def service_restart(conffile, args):

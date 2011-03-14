@@ -12,8 +12,6 @@ What's next, doc?
 
 == Fixes and glitches
 
-* drop default to some existing database rather than the one of today
-
 * at drop time, check for existing backends once pgbouncer is paused and
   terminate them
 
