@@ -379,6 +379,9 @@ The default expression is used when date is None and can be one of 'today',
         # while connected, try to create the database
         r.createdb(self.db_encoding)
 
+        # add the new database to pgbouncer configuration now
+        self.pgbouncer_add_database()
+
     def restore(self):
         """ launch a pg_restore for the current staging configuration """
         from options import VERBOSE, TERSE, DEBUG

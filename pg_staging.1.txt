@@ -131,7 +131,8 @@ exposed.
 
 createdb <dbname> [<YYYYMMDD>]::
 
-       only create the target database
+       create the target database and add it to the +pgbouncer+ setup.
+
 load <dbname> <filename>::
 
 	+pg_restore+ given dump file, this allow to skip the auto
