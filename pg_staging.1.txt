@@ -155,9 +155,10 @@ postsql <dbname> [<YYYYMMDD>]::
 
 ===  listings ===
 
-databases::
+databases [<dbname>]::
 
-	Show the list of database sections parsed into the .ini file.
+	Show the list of database sections parsed into the .ini file.  When
+	given a +<dbname>+ show the list of known databases from +pgbouncer+.
 
 backups <dbname> [oldest|latest]::
 	

@@ -402,17 +402,26 @@ def post_source_extra_files(conffile, args):
 
 def list_databases(conffile, args):
     """ list configured databases """
-    config = ConfigParser.SafeConfigParser()
+    usage = "databases [section]"
 
-    try:
-        config.read(conffile)
-    except Exception, e:
-        print >>sys.stderr, "Error: unable to read '%s'" % conffile
-        print >>sys.stderr, e
-        sys.exit(2)
+    if len(args) == 0:
+        config = ConfigParser.SafeConfigParser()
 
-    for section in config.sections():
-        print section
+        try:
+            config.read(conffile)
+        except Exception, e:
+            print >>sys.stderr, "Error: unable to read '%s'" % conffile
+            print >>sys.stderr, e
+            sys.exit(2)
+
+        for section in config.sections():
+            print section
+
+    elif len(args) == 1:
+        list_pgbouncer_databases(conffile, args)
+
+    else:
+        raise WrongNumberOfArgumentsException, usage
 
 def list_backups(conffile, args):
     """ list available backups for a given database """

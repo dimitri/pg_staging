@@ -29,6 +29,10 @@ class pgbouncer:
         psql = 'psql -h %s -p %s -U %s %s -c "SHOW %s;" 2>/dev/null' \
                   % (self.host, self.port, self.user, self.dbname, command)
 
+        from options import DEBUG
+        if DEBUG:
+            print psql
+
         i = 0
 
         out  = os.popen(psql)
