@@ -137,11 +137,11 @@ class pgrestore:
         if not TERSE:
             print 'dropped database "%s"' % self.dbname
 
-    def vacuumdb(self):
+    def vacuumdb(self, standalone = False):
         """ connect to remote PostgreSQL server to vacuum database"""
         from options import VERBOSE, TERSE
 
-        if VERBOSE:
+        if VERBOSE or standalone:
             print "vacuumdb analyze %s" % self.dbname
 
         dsn = "dbname='%s' user='%s' host='%s' port=%d connect_timeout=%d" \

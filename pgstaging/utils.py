@@ -144,3 +144,7 @@ class UnknownCommandException(Exception):
 class ExportFileAlreadyExistsException(Exception):
     """ Use --force to overwrite existing export filename """
     pass
+
+class NoActiveDatabaseException(Exception):
+    """ please specify a valid database choice """
+    pass

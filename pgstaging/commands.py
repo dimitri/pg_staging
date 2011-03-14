@@ -350,7 +350,7 @@ def vacuumdb(conffile, args):
 
     # now load configuration and fetch
     staging = parse_config(conffile, dbname)
-    staging.set_backup_date(backup_date)
+    staging.set_dbname_date(backup_date, 'active')
     secs = staging.vacuumdb()
 
     print "vacuum took: %s" % duration_pprint(secs)

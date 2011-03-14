@@ -135,6 +135,27 @@ The default expression is used when date is None and can be one of 'today',
             print "backup filename is '%s'" % self.backup_filename
             print "target database backup date is '%s'" % self.dated_dbname
 
+    def set_dbname_date(self, date, default = 'oldest'):
+        """set the database date to be found in its name, see
+        set_backup_date for possible defaults """
+
+        if date is None:
+            date = default
+
+        if date == "today":
+            dbdate = datetime.date.today()
+        elif date == 'active':
+            dbdate = self.parse_dbname_date(self.get_active_dbname())
+        elif date == 'oldest':
+            dbdate = self.parse_dbname_date(self.get_oldest_dbname())
+        elif date == 'latest':
+            dbdate = self.parse_dbname_date(self.get_latest_dbname())
+        else:
+            dbdate = self.parse_date(date)
+
+        self.dated_dbname = "%s_%s" % (self.dbname,
+                                       str(dbdate).replace('-', ''))
+
     def timing(self):
         """ return time elapsed since staging object creation """
         return time.time() - self.creation_time
@@ -674,6 +695,13 @@ The default expression is used when date is None and can be one of 'today',
 
         return oldest[1]
 
+    def get_active_dbname(self):
+        """ return the active available dbname (through pgbouncer) """
+        for name, database, host, port in self.pgbouncer_databases():
+            if name == self.dbname:
+                return database
+        raise NoActiveDatabaseException
+
     def purge(self):
         """ keep only self.keep_bases databases """
         from options import TERSE, VERBOSE
@@ -702,7 +730,7 @@ The default expression is used when date is None and can be one of 'today',
                               self.maintdb,
                               self.postgres_major)
 
-        return r.vacuumdb()
+        return r.vacuumdb(standalone=True)
 
 
     def dbsize(self, dbname = None):
