@@ -185,6 +185,32 @@ The default expression is used when date is None and can be one of 'today',
         alp = ApacheListingParser(buf, self.dbname)
         return alp.parse()
 
+    def pp_file_size(self, size):
+        """ Given 30947087864, print 30GB """
+        if size > 2**40:
+            return "%dT" % (size/2**40)
+
+        elif size > 2**30:
+            return "%dG" % (size/2**30)
+
+        elif size > 2**20:
+            return "%dM" % (size/2**20)
+
+        elif size > 2**10:
+            return "%dK" % (size/2**10)
+
+        else:
+            return "%dB" % size
+
+    def list_local_backups(self):
+        """ return a list of local backup files for self.dbname """
+        import stat
+        for name in os.listdir(self.tmpdir):
+            fullname = os.path.join(self.tmpdir, name)
+            if not os.path.isdir(fullname) and name.startswith(self.dbname):
+                size = self.pp_file_size(os.stat(fullname)[stat.ST_SIZE])
+                yield size, name
+
     def parse_backup_file_date(self, filename):
         """ extract date from foo_db.2011-03-11.dump """
         return self.parse_date(filename.split(".")[1])
@@ -473,8 +499,12 @@ The default expression is used when date is None and can be one of 'today',
             self.dated_dbname = "%s_%s" % (self.dbname, self.backup_date)
 
         except ValueError, e:
+            os.chdir(pushd)
             mesg = "load: '%s' isn't a valid dump file name" % filename
             raise ParseDumpFileException, mesg
+
+        if filename[0] != '/':
+            filename = os.path.join(self.tmpdir, filename)
 
         # see comments in previous self.restore() method
         r = restore.pgrestore(self.dated_dbname,

@@ -161,10 +161,11 @@ databases [<dbname>] [oldest|latest]::
 	Show the list of database sections parsed into the .ini file.  When
 	given a +<dbname>+ show the list of known databases from +pgbouncer+.
 
-backups <dbname> [oldest|latest]::
+backups <dbname> [remote|local|oldest|latest]::
 	
-	Show <dbname> available backups on the http host.  When given
-	'oldest' or 'latest', only list this backup.
+	Show <dbname> available backups on the http host, by default or when
+	+remote+ is given.  When given 'oldest' or 'latest', only list this
+	backup.  Given +local+, list backups found in +tmpdir+.
 
 dbsize <dbname> [<YYYMMDD>]::
 

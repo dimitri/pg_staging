@@ -426,23 +426,27 @@ def list_databases(conffile, args):
 def list_backups(conffile, args):
     """ list available backups for a given database """
     if len(args) not in (1, 2):
-        raise WrongNumberOfArgumentsException, "backups <dbname> [oldest|latest]"
+        raise WrongNumberOfArgumentsException, "backups <dbname> [remote|local|oldest|latest]"
 
-    if len(args) == 2 and args[1] not in ('oldest', 'latest'):
+    if len(args) == 2 and args[1] not in ('oldest', 'latest', 'remote', 'local'):
         mesg = "backups command can list only 'oldest' or 'latest' backup"
         raise UnknownOptionException, mesg
 
     dbname = args[0]
     staging = parse_config(conffile, dbname)
 
-    if len(args) == 1:
+    if len(args) == 1 or args[1] == 'remote':
         for size, backup in staging.list_backups():
             print "%6s %s " % (size, backup)
+
     elif args[1] == 'oldest':
         print "%6s %s " % staging.get_oldest_backup()
     elif args[1] == 'latest':
         print "%6s %s " % staging.get_latest_backup()
 
+    elif args[1] == 'local':
+        for size, backup in staging.list_local_backups():
+            print "%6s %s " % (size, backup)
 
 def psql_connect(conffile, args):
     """ launch a psql connection to the given configured section """
