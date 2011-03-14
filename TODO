@@ -15,8 +15,6 @@ What's next, doc?
 * at drop time, check for existing backends once pgbouncer is paused and
   terminate them
 
-* load should use the path from the pg_staging config
-
 * add support for loading contrib scripts
 
 * londiste command should target latest restored database by default
