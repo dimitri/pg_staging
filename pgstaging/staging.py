@@ -114,9 +114,9 @@ The default expression is used when date is None and can be one of 'today',
         if date == "today":
             backup_date = datetime.date.today()
         elif date == 'oldest':
-            backup_date = self.parse_backup_file_date(self.get_oldest_backup())
+            backup_date = self.parse_backup_file_date(self.get_oldest_backup()[1])
         elif date == 'latest':
-            backup_date = self.parse_backup_file_date(self.get_latest_backup())
+            backup_date = self.parse_backup_file_date(self.get_latest_backup()[1])
         else:
             backup_date = self.parse_date(date)
 
