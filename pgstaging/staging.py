@@ -680,6 +680,12 @@ The default expression is used when date is None and can be one of 'today',
         if dbname is None:
             dbname = self.dated_dbname
 
+        # first remove the database from pgbouncer configuration
+        self.pgbouncer_del_database(dbname)
+
+        # and restart pgbouncer, so that there's no connection left
+        self.control_service('pgbouncer', 'restart')
+
         r = restore.pgrestore(dbname,
                               self.dbuser,
                               self.host,
@@ -687,9 +693,6 @@ The default expression is used when date is None and can be one of 'today',
                               self.dbowner,
                               self.maintdb,
                               self.postgres_major)
-
-        # pause the database beforehand
-        self.pgbouncer_pause(dbname)
 
         # and dropdb now that there's no more connection to it
         try:
@@ -701,8 +704,6 @@ The default expression is used when date is None and can be one of 'today',
                 print "Cleaning up pgbouncer for non-existing database %s" \
                       % dbname
 
-        # and remove it from pgbouncer configuration
-        self.pgbouncer_del_database(dbname)
 
     def pgbouncer_dbnames(self):
         """return sorted list of databases available in pgbouncer and
