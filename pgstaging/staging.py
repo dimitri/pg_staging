@@ -427,7 +427,8 @@ The default expression is used when date is None and can be one of 'today',
                               self.pg_restore,
                               self.pg_restore_st,
                               self.schemas,
-                              self.schemas_nodata)
+                              self.schemas_nodata,
+                              self.relname_nodata)
 
         # while connected, try to create the database
         r.createdb(self.db_encoding)
@@ -517,7 +518,8 @@ The default expression is used when date is None and can be one of 'today',
                               self.pg_restore,
                               self.pg_restore_st,
                               self.schemas,
-                              self.schemas_nodata)
+                              self.schemas_nodata,
+                              self.relname_nodata)
 
         # create the target database if it does not already exists
         exists = self.dated_dbname in [n for n,d,h,p
