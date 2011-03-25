@@ -146,13 +146,13 @@ presql <dbname> [<YYYYMMDD>]::
 
         Source the `sql_path/pre/*.sql` files into the database by means of
         +psql -f+, in alphabetical order, *without* recursive walking into
-        subdirs.
+        subdirs.  Files are searched for in the directory +{sql_path}/dbname+.
 
 postsql <dbname> [<YYYYMMDD>]::
 
         Source the `sql_path/post/*.sql` files into the database by means of
         +psql -f+, in alphabetical order, *without* recursive walking into
-        subdirs.
+        subdirs.  Files are searched for in the directory +{sql_path}/dbname+.
 
 ===  listings ===
 
