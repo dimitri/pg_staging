@@ -675,35 +675,24 @@ The default expression is used when date is None and can be one of 'today',
 
     def drop(self, dbname = None):
         """ drop the given database: dbname_%(backup_date) """
-        from options import TERSE
+        from options import VERBOSE, TERSE, CLIENT_SCRIPT
+        from utils import RET_CODE
 
         if dbname is None:
             dbname = self.dated_dbname
 
-        # first remove the database from pgbouncer configuration
-        self.pgbouncer_del_database(dbname)
+        # Drop DB via staging-client.sh 
+        dropped = utils.run_client_script(self.host, ["dropdb", dbname, self.pgbouncer_port], self.use_sudo, RET_CODE)
 
-        # and restart pgbouncer, so that there's no connection left
-        self.control_service('pgbouncer', 'restart')
+        if VERBOSE:
+            print "Database %s dropped (%s), then clean pgbouncer" % (dbname, dropped)
 
-        r = restore.pgrestore(dbname,
-                              self.dbuser,
-                              self.host,
-                              self.pgbouncer_port,
-                              self.dbowner,
-                              self.maintdb,
-                              self.postgres_major)
+        if dropped == 0:
+            # first remove the database from pgbouncer configuration
+            self.pgbouncer_del_database(dbname)
 
-        # and dropdb now that there's no more connection to it
-        try:
-            r.dropdb()
-        except psycopg2.ProgrammingError, e:
-            # database still is in pgbouncer setup but has already been
-            # dropped, database %%% does not exist error
-            if not TERSE:
-                print "Cleaning up pgbouncer for non-existing database %s" \
-                      % dbname
-
+            # and restart pgbouncer, so that there's no connection left
+            self.control_service('pgbouncer', 'restart')
 
     def pgbouncer_dbnames(self):
         """return sorted list of databases available in pgbouncer and

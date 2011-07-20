@@ -67,7 +67,7 @@ def ssh_cat(host, filename):
     command = "ssh %s cat %s" % (host, filename)
     return run_command(command, returning = RET_OUT)
 
-def run_client_script(host, args, use_sudo = True):
+def run_client_script(host, args, use_sudo = True, ret = RET_OUT):
     """ ssh host sudo CLIENT_SCRIPT args """
     from options import CLIENT_SCRIPT
 
@@ -78,7 +78,7 @@ def run_client_script(host, args, use_sudo = True):
 
     str_args = " ".join([str(x) for x in args])
     command  = "ssh %s %s %s %s" % (host, sudo, CLIENT_SCRIPT, str_args)
-    return run_command(command, returning = RET_OUT)
+    return run_command(command, returning = ret )
 
 class NotYetImplementedException(Exception):
     """ Please try again """

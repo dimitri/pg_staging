@@ -24,8 +24,35 @@ function pgbouncer() {
     chmod a+r $PGBOUNCER_BASEDIR/$filename
     (cd $PGBOUNCER_BASEDIR && ln -sf $filename pgbouncer.ini)
 
-    psql -c "reload;" -U postgres -p $2 pgbouncer
+    psql -c "reload;" -U postgres -p $2 pgbouncer > /dev/null 2>&1 
 }
+
+function dropdb() {
+    dbname=$1
+    pgbouncer_port=$2
+    outcode=0
+
+    # Stop PgBouncer 
+    service stop pgbouncer $pgbouncer_port
+
+    # Cancel Backend 
+    psql -U postgres -c "select pg_cancel_backend( procpid ) from pg_stat_activity where datname='${dbname}'" > /dev/null 2>&1
+    if [ $? -ne 0 ]; then 
+	outcode=1 
+    fi
+	
+    # Drop Database 
+    psql -U postgres -c "drop database $dbname ; "  > /dev/null 2>&1
+    if [ $? -ne 0 ]; then 
+	outcode=1
+    fi
+
+    # Start Pgbouncer 
+    service start pgbouncer > /dev/null 2>&1
+
+    return $outcode 
+} 
+
 
 function service() {
     action=$1
@@ -236,6 +263,9 @@ case $command in
 
     "ticker")
 	ticker $*;;
+
+    "dropdb")
+	dropdb $*;;
 
     *)
 	echo "unsupported command" >&2
