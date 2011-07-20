@@ -848,7 +848,7 @@ The default expression is used when date is None and can be one of 'today',
                 print "skipping '%s' which is not a directory" % sql_path
             return
 
-        r = restore.pgrestore(self.dbname,
+        r = restore.pgrestore(self.dated_dbname,
                               self.dbuser,
                               self.host,
                               self.pgbouncer_port,
