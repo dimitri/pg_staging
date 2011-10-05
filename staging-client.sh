@@ -40,7 +40,14 @@ function dropdb() {
     if [ $? -ne 0 ]; then 
 	outcode=1 
     fi
-	
+    nbsession=`psql -U postgres -At -c "select count( * ) from pg_stat_activity where datname='${dbname}'"`
+    if [ "$outcode" -ne 0 ] || [ "$nbsession" -ne 0 ]; then
+	service stop postgresql
+	sleep 2
+	service start postgresql
+        sleep 5
+    fi 
+
     # Drop Database 
     psql -U postgres -c "drop database $dbname ; "  > /dev/null 2>&1
     if [ $? -ne 0 ]; then 
@@ -135,6 +142,22 @@ function service() {
 		    $(exit 1)
 		    ;;
 	    esac
+	    ;;
+
+	"postgresql")
+	    OIFS=$IFS
+	    IFS="$(echo -e "\n\r")"
+	    for cluster in `pg_lsclusters -h|awk '{print $1 " " $2}'` 
+	    do
+		IFS=" " read -r version name <<< "$cluster" 
+		if [ "$action" = "stop" ]; then
+		    switch="--force"
+		else
+		    switch=""
+		fi
+		/usr/bin/pg_ctlcluster $version $name $action $switch
+	    done
+	    IFS=$OIFS
 	    ;;
 
 	*)
