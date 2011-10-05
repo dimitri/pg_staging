@@ -1,4 +1,4 @@
-pgstaging (1.0~dev1-1) unstable; urgency=low
+pgstaging (1.0~dev2-1) unstable; urgency=low
 
   * Support database special dates 'active', 'latest' and 'oldest'
   * Have databases act like pgbouncer when given arguments
@@ -6,7 +6,7 @@ pgstaging (1.0~dev1-1) unstable; urgency=low
   * createdb now add the database in the pgbouncer setup
   * Allow listing of local backup files
   * relative filenames in load are now expanded correctly
-  * improve database drop steps ordering to avoid active sessions
+  * rewrite database drop in the staging client to make it reliable
 
  -- Dimitri Fontaine <dim@tapoueh.org>  Wed, 16 Mar 2011 18:18:06 +0100
 

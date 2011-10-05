@@ -40,6 +40,7 @@ function dropdb() {
     if [ $? -ne 0 ]; then 
 	outcode=1 
     fi
+
     nbsession=`psql -U postgres -At -c "select count( * ) from pg_stat_activity where datname='${dbname}'"`
     if [ "$outcode" -ne 0 ] || [ "$nbsession" -ne 0 ]; then
 	service stop postgresql
