@@ -1,5 +1,6 @@
-pgstaging (1.0~dev2-1) unstable; urgency=low
+pgstaging (1.0~dev4-1) unstable; urgency=low
 
+  [ Dimitri Fontaine ]
   * Support database special dates 'active', 'latest' and 'oldest'
   * Have databases act like pgbouncer when given arguments
   * Change default database target from 'today' to 'active' or 'oldest'
@@ -8,7 +9,11 @@ pgstaging (1.0~dev2-1) unstable; urgency=low
   * relative filenames in load are now expanded correctly
   * rewrite database drop in the staging client to make it reliable
 
- -- Dimitri Fontaine <dim@tapoueh.org>  Wed, 16 Mar 2011 18:18:06 +0100
+  [ Sébastien Lardière ]
+  * Improve DrodDB by restart Postgresql Cluster before drop
+  * Add postgresql service to restart cluster
+  * Add DOMAIN in listing filter
+ -- Sébastien Lardière <slardiere@hi-media.com>  Mon, 17 Oct 2011 12:38:15 +0200
 
 pgstaging (0.12~dev1-1) unstable; urgency=low
 

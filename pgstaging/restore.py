@@ -333,6 +333,7 @@ class pgrestore:
                    or line.find('DEFAULT') > -1    \
                    or line.find('INDEX') > -1      \
                    or line.find('TRIGGER') > -1    \
+                   or line.find('DOMAIN') > -1    \
                    or line.find('CONSTRAINT') > -1:
 
                 try:
