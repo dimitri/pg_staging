@@ -466,8 +466,9 @@ The default expression is used when date is None and can be one of 'today',
             mesg += "\nDetail: %s" % e
             raise PGRestoreFailedException, mesg
 
-        # set the database search_path if non default
-        self.set_database_search_path()
+        finally:
+            # set the database search_path if non default
+            self.set_database_search_path()
 
         # remove the dump even when there was no exception
         self.do_remove_dump(filename)
@@ -543,8 +544,9 @@ The default expression is used when date is None and can be one of 'today',
             mesg += "\nDetail: %s" % e
             raise PGRestoreFailedException, mesg
 
-        # set the database search_path if non default
-        self.set_database_search_path()
+        finally:
+            # set the database search_path if non default
+            self.set_database_search_path()
 
         return secs
 

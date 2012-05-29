@@ -493,13 +493,11 @@ class pgrestore:
                 continue
 
             if line.find(create_trigger) > -1:
-                current_trigger = line[create_trigger_l:].strip()
+                current_trigger = line[create_trigger_l:].strip().split(' ')[0]
 
                 if current_trigger not in triggers[current_schema]:
                     # add an empty procedures list
                     triggers[current_schema][current_trigger] = []
-
-                continue
 
             if line.find(returns_trigger) > -1:
                 # CREATE FUNCTION partition_board_log() RETURNS "trigger"
