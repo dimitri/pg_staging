@@ -551,7 +551,7 @@ class pgrestore:
         """ return pretty printed dbsize """
         from options import VERBOSE
 
-        sql = "SELECT pg_size_pretty(%s)" % size
+        sql = "SELECT pg_size_pretty(%s::bigint)" % size
 
         if VERBOSE:
             print sql
