@@ -1,3 +1,12 @@
+pgstaging (1.0~dev6-1) unstable; urgency=low
+
+  * Improve PostgreSQL 9.2 support
+  * Add Multi-Cluster Support
+  * Improve Londiste 2 Support
+  * Correct Bug about schema ACL detection
+
+ -- Sébastien Lardière <slardiere@hi-media.com>  Tue, 11 Jun 2013 15:57:58 +0200
+
 pgstaging (1.0~dev5-1) unstable; urgency=low
 
   * Change the TRIGGER name and function detection 
@@ -30,7 +39,6 @@ pgstaging (0.12~dev1-1) unstable; urgency=low
  -- Dimitri Fontaine <dim@tapoueh.org>  Tue, 29 Dec 2009 17:41:03 +0100
 
 pgstaging (0.11-1) unstable; urgency=low
-
   * Clarify the pgstaging/console.py licence: MIT
   * Install the client part in /usr/share/pgstaging rather than /usr/lib
 
