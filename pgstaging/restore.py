@@ -371,7 +371,7 @@ class pgrestore:
                         schema = b
 
                     # filter out ACL lines for schemas we want to exclude
-                    if a == 'ACL' and b == '-' and c in schemas:
+                    if a == 'ACL' and b == '-' and c not in schemas:
                         filter_out = True
 
                     # check schemas (contains data we want to restore)
