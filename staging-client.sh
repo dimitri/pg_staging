@@ -3,6 +3,11 @@
 # client script for pg_staging.py, to be installed on target machines
 # must run as root
 #
+
+# Check Londiste and pgqadm CMD
+LONDISTE=`{ test -x "/usr/bin/londiste.py" && echo "/usr/bin/londiste.py"; } || { test -x "/usr/bin/londiste" && echo "/usr/bin/londiste"; } `
+PGQADM=`{ test -x "/usr/bin/pgqadm.py" && echo "/usr/bin/pgqadm.py"; } || { test -x "/usr/bin/pgqadm" && echo "/usr/bin/pgqadm"; } `
+
 PGBOUNCER_BASEDIR=/etc/pgbouncer
 
 if [ $EUID -ne 0 ]; then
@@ -111,18 +116,18 @@ function service() {
 	    ini=$4
 	    case $action in
 		"start")
-		    londiste.py ~/londiste/$provider/$ini replay -d
+		    $LONDISTE ~/londiste/$provider/$ini replay -d
 		    ;;
 
 		"stop")
 		    # arg is londiste configuration file
-		    londiste.py ~/londiste/$provider/$ini -s
+		    $LONDISTE ~/londiste/$provider/$ini -s
 		    sleep 3
-		    londiste.py ~/londiste/$provider/$ini -k
+		    $LONDISTE ~/londiste/$provider/$ini -k
 		    ;;
 
 		"status")
-		    londiste.py ~/londiste/$provider/$ini subscriber tables
+		    $LONDISTE ~/londiste/$provider/$ini subscriber tables
 		    ;;
 
 		*)
@@ -136,17 +141,17 @@ function service() {
 	    ini=$3
 	    case $action in
 		"start")
-		    pgqadm.py ~/londiste/$ini ticker -d
+		    $PGQADM ~/londiste/$ini ticker -d
 		    ;;
 
 		"stop")
-		    pgqadm.py ~/londiste/$ini -s
+		    $PGQADM ~/londiste/$ini -s
 		    sleep 3
-		    pgqadm.py ~/londiste/$ini -k
+		    $PGQADM ~/londiste/$ini -k
 		    ;;
 
 		"status")
-		    pgqadm.py ~/londiste/$ini status
+		    $PGQADM ~/londiste/$ini status
 		    ;;
 
 		*)
@@ -192,17 +197,26 @@ function init_londiste() {
     mkdir -p ~/londiste/$provider
     mv /tmp/$ini ~/londiste/$provider/
 
-    londiste.py ~/londiste/$provider/$ini provider install
-    londiste.py ~/londiste/$provider/$ini subscriber install
+    $LONDISTE ~/londiste/$provider/$ini provider install
+    $LONDISTE ~/londiste/$provider/$ini subscriber install
 
-    londiste.py ~/londiste/$provider/$ini provider add $*
-    londiste.py ~/londiste/$provider/$ini subscriber add $*
+    # Loop Over Tables list
+    for t in $*
+    do
+      londiste2 ~/londiste/$provider/$ini -v provider add $t
+    done
+
+    for t in $*
+    do
+      londiste2 ~/londiste/$provider/$ini -v subscriber add $t
+    done
+
 }
 
 function replay() {
     # $1 provider
     # $2 ini file
-    londiste.py ~/londiste/$1/$2 replay -d
+    $LONDISTE ~/londiste/$1/$2 replay -d
 }
 
 function init_pgq() {
@@ -210,11 +224,11 @@ function init_pgq() {
     mkdir -p ~/londiste
     mv /tmp/$1 ~/londiste
 
-    pgqadm.py ~/londiste/$1 install
+    $PGQADM ~/londiste/$1 install
 }
 
 function ticker() {
-    pgqadm.py ~/londiste/$1 ticker -d
+    $PGQADM ~/londiste/$1 ticker -d
 }
 
 function pitr() {
