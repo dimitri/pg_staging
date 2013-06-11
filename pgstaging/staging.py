@@ -684,7 +684,7 @@ The default expression is used when date is None and can be one of 'today',
             dbname = self.dated_dbname
 
         # Drop DB via staging-client.sh 
-        dropped = utils.run_client_script(self.host, ["dropdb", dbname, self.pgbouncer_port], self.use_sudo, RET_CODE)
+        dropped = utils.run_client_script(self.host, ["dropdb", dbname, self.pgbouncer_port, self.postgres_port, self.postgres_major], self.use_sudo, RET_CODE)
 
         if VERBOSE:
             print "Database %s dropped (%s), then clean pgbouncer" % (dbname, dropped)

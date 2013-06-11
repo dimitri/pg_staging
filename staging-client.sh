@@ -30,18 +30,28 @@ function pgbouncer() {
 function dropdb() {
     dbname=$1
     pgbouncer_port=$2
+    postgres_port=$3
+    postgres_major=$4
     outcode=0
 
     # Stop PgBouncer 
     service stop pgbouncer $pgbouncer_port
 
     # Cancel Backend 
-    psql -U postgres -c "select pg_cancel_backend( procpid ) from pg_stat_activity where datname='${dbname}'" > /dev/null 2>&1
+    if [ $(echo "$postgres_major >= 9.2" | bc) -eq 1 ]
+    then
+ 	    echo "version >= 9.2"
+	    psql -U postgres -p $postgres_port -c "select pg_cancel_backend( pid ) from pg_stat_activity where datname='${dbname}'" > /dev/null 2>&1
+    else
+            echo "version < 9.2"
+            psql -U postgres -p $postgres_port -c "select pg_cancel_backend( procpid ) from pg_stat_activity where datname='${dbname}'" > /dev/null 2>&1
+    fi
+
     if [ $? -ne 0 ]; then 
 	outcode=1 
     fi
 
-    nbsession=`psql -U postgres -At -c "select count( * ) from pg_stat_activity where datname='${dbname}'"`
+    nbsession=`psql -U postgres -p $postgres_port -At -c "select count( * ) from pg_stat_activity where datname='${dbname}'"`
     if [ "$outcode" -ne 0 ] || [ "$nbsession" -ne 0 ]; then
 	service stop postgresql
 	sleep 2
@@ -50,15 +60,16 @@ function dropdb() {
     fi 
 
     # Drop Database 
-    psql -U postgres -c "drop database $dbname ; "  > /dev/null 2>&1
+    psql -U postgres -p $postgres_port -c "drop database $dbname ; "  > /dev/null 2>&1
+
     if [ $? -ne 0 ]; then 
-	outcode=1
+	outcode=2
     fi
 
     # Start Pgbouncer 
     service start pgbouncer > /dev/null 2>&1
 
-    return $outcode 
+return $outcode 
 } 
 
 
