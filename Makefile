@@ -1,6 +1,7 @@
 VERSION = $(shell ./pg_staging.py --version |cut -d' ' -f2)
 
 # debian setting
+SHELL      = /bin/bash
 DESTDIR    =
 confdir    = $(DESTDIR)/etc/pg_staging
 libdir     = $(DESTDIR)/usr/share/python-support/pg_staging
@@ -66,4 +67,4 @@ pg_staging.5: pg_staging.5.txt
 	xmlto man pg_staging.5.xml
 
 clean:
-	rm -f *.xml *.html
+	rm -Rf *.xml *.html debian/pgstaging debian/pgstaging-client
